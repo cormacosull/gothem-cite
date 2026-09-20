@@ -1,2 +1,0 @@
-# gothem-cite
-WE GOTTHEM
