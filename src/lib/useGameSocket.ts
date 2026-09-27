@@ -2,26 +2,26 @@ import { useEffect, useRef, useState } from 'react';
 import { GameSocket } from './websocket';
 import type { ServerMessage } from './protocol';
 
-// "localhost" only works when the server and the client are on the same
-// machine (e.g. web export, or a simulator). Testing on a physical phone via
-// Expo Go needs your computer's LAN IP instead, e.g. "ws://192.168.1.23:8080".
-const SERVER_URL = 'ws://localhost:8080';
+const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL ?? 'ws://localhost:8080'
 
 export function useGameSocket() {
   const socketRef = useRef<GameSocket | null>(null);
   const [lastMessage, setLastMessage] = useState<ServerMessage | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     const socket = new GameSocket(SERVER_URL);
     socketRef.current = socket;
     socket.connect();
-    const unsubscribe = socket.onMessage(setLastMessage);
+    const unsubMessage = socket.onMessage(setLastMessage);
+    const unsubStatus = socket.onStatusChange(setIsConnected);
 
     return () => {
-      unsubscribe();
+      unsubMessage();
+      unsubStatus();
       socket.disconnect();
     };
   }, []);
 
-  return { socket: socketRef.current, lastMessage };
+  return { socket: socketRef.current, lastMessage, isConnected };
 }

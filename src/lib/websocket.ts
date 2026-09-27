@@ -1,12 +1,14 @@
 import type { ClientMessage, ServerMessage } from './protocol';
 
-type Listener = (message: ServerMessage) => void;
+type MessageListener = (message: ServerMessage) => void;
+type StatusListener = (connected: boolean) => void;
 
 // Thin wrapper around React Native's built-in WebSocket global — no extra
 // package needed on the client side, unlike the server.
 export class GameSocket {
   private ws: WebSocket | null = null;
-  private listeners = new Set<Listener>();
+  private messageListeners = new Set<MessageListener>();
+  private statusListeners = new Set<StatusListener>();
 
   constructor(private url: string) {}
 
@@ -16,14 +18,20 @@ export class GameSocket {
     this.ws.onmessage = (event) => {
       try {
         const message: ServerMessage = JSON.parse(event.data);
-        this.listeners.forEach((listener) => listener(message));
+        this.messageListeners.forEach((listener) => listener(message));
       } catch (err) {
         console.warn('Received malformed message from server', err);
       }
     };
 
-    this.ws.onopen = () => console.log('Connected to game server');
-    this.ws.onclose = () => console.log('Disconnected from game server');
+    this.ws.onopen = () => {
+      console.log('Connected to game server');
+      this.statusListeners.forEach((listener) => listener(true));
+    };
+    this.ws.onclose = () => {
+      console.log('Disconnected from game server');
+      this.statusListeners.forEach((listener) => listener(false));
+    };
     this.ws.onerror = (err) => console.warn('WebSocket error', err);
   }
 
@@ -35,10 +43,15 @@ export class GameSocket {
     }
   }
 
-  // Returns an unsubscribe function.
-  onMessage(listener: Listener) {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
+  // Both return an unsubscribe function.
+  onMessage(listener: MessageListener) {
+    this.messageListeners.add(listener);
+    return () => this.messageListeners.delete(listener);
+  }
+
+  onStatusChange(listener: StatusListener) {
+    this.statusListeners.add(listener);
+    return () => this.statusListeners.delete(listener);
   }
 
   disconnect() {
