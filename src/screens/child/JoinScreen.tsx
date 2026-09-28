@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,13 +7,10 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { useGameSocket } from '../../lib/useGameSocket';
+import { useSessionViewModel } from '../../viewmodels/useSessionViewModel';
 import { CodeInput } from '../../components/CodeInput';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { colors, spacing, radii, inkShadow } from '../../theme/tokens';
-import type { Player } from '../../lib/protocol';
-
-type Phase = 'entering' | 'joining' | 'waiting' | 'error';
 
 interface Props {
   // Called once mission control starts the game, so whichever navigator
@@ -23,38 +19,18 @@ interface Props {
 }
 
 export function JoinScreen({ onGameStart }: Props) {
-  const { socket, lastMessage, isConnected } = useGameSocket();
-
-  const [code, setCode] = useState('');
-  const [name, setName] = useState('');
-  const [phase, setPhase] = useState<Phase>('entering');
-  const [errorText, setErrorText] = useState('');
-  const [players, setPlayers] = useState<Player[]>([]);
-
-  useEffect(() => {
-    if (!lastMessage) return;
-
-    if (lastMessage.type === 'join_ack') {
-      setPhase('waiting');
-      setPlayers(lastMessage.state.players);
-    }
-    if (lastMessage.type === 'join_error') {
-      setPhase('error');
-      setErrorText(lastMessage.reason);
-    }
-    if (lastMessage.type === 'state_update' && lastMessage.state.status !== 'lobby') {
-      onGameStart?.();
-    }
-    if (lastMessage.type === 'state_update' && lastMessage.state.status === 'lobby') {
-      setPlayers(lastMessage.state.players);
-    }
-  }, [lastMessage]);
-
-  function handleJoin() {
-    if (code.length !== 4 || !name.trim()) return;
-    setPhase('joining');
-    socket?.send({ type: 'join_session', code, playerName: name.trim() });
-  }
+  const {
+    code,
+    setCode,
+    name,
+    setName,
+    phase,
+    errorText,
+    players,
+    isConnected,
+    join,
+    canJoin,
+  } = useSessionViewModel({ onGameStart });
 
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -85,11 +61,7 @@ export function JoinScreen({ onGameStart }: Props) {
             {phase === 'joining' ? (
               <ActivityIndicator color={colors.signal} />
             ) : (
-              <PrimaryButton
-                label="Join the fight"
-                onPress={handleJoin}
-                disabled={!isConnected || code.length !== 4 || !name.trim()}
-              />
+              <PrimaryButton label="Join the fight" onPress={join} disabled={!canJoin} />
             )}
           </View>
 

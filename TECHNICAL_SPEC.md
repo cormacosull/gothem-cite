@@ -136,9 +136,10 @@ later phase has somewhere to plug in.
 - [x] Server project scaffolded (`server/`), builds and runs independently (`npm run dev`)
 - [ ] Decide on and set up a shared-types solution (npm workspace, or accept manual sync for
       MVP and document it clearly in the README)
-- [ ] Server: split `sessionManager.ts` / `index.ts` into `domain/` (pure rules),
-      `application/` (use cases), and `infrastructure/` (WebSocket glue) per §2.1
-- [ ] Client: introduce the `viewmodels/` layer and migrate `JoinScreen.tsx` to use a
+- [x] Server: split `sessionManager.ts` / `index.ts` into `domain/rules.ts` (pure rules),
+      `application/sessionService.ts` (use cases), and `infrastructure/websocketServer.ts`
+      (WebSocket glue) per §2.1 — `index.ts` is now a 3-line entry point
+- [x] Client: introduced the `viewmodels/` layer and migrated `JoinScreen.tsx` to use a
       `useSessionViewModel()` hook instead of managing socket + state directly, per §2.2
       (this becomes the template every later screen/minigame follows)
 - [ ] Add Zustand store(s) as the ViewModel layer's state mechanism, or explicitly decide to
@@ -219,16 +220,19 @@ split leaked somewhere earlier.
 - [ ] Sound effects / music (stretch)
 - [ ] Transition/intro animations (stretch)
 
-## 6. Testing & Verification
+## 7. Testing & Verification
 
 - Server has a standalone smoke test (`server/src/testClient.ts`) simulating a full
   parent+child session without the Expo app — keep this updated as the protocol grows; it's
   the fastest way to verify server logic changes.
+- Once the domain layer (§2.1) is extracted, add small unit tests directly against it (health
+  math, mission-dependency resolution, win/loss) — these don't need a socket or an Expo app
+  at all, which is the whole point of pulling them out of `sessionManager.ts`.
 - No automated tests on the client yet. At minimum, before each phase is considered "done,"
   do a manual run with the parent on one machine and 1–3 Expo Go clients on real phones on
   the same network, per the Hardware section of the project brief.
 
-## 7. Known Gaps / Risks to Revisit
+## 8. Known Gaps / Risks to Revisit
 
 - Protocol types are duplicated by hand between client and server — a missed edit on one
   side will fail silently until runtime.
@@ -239,3 +243,7 @@ split leaked somewhere earlier.
 - Zustand is installed but unused — either use it or drop it before submission so the
   dependency list matches what's actually used (relevant to the "quality of code" grading
   criterion).
+- `server/tsconfig.json` had a stray `"ignoreDeprecations": "6.0"` that doesn't match the
+  pinned TypeScript version (`^5.5.0`) and failed `tsc` outright (TS5103) — removed. If a
+  future TS upgrade needs this flag, use whatever value matches the version actually
+  installed.
