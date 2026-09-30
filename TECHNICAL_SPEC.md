@@ -134,17 +134,26 @@ later phase has somewhere to plug in.
 - [x] Shared protocol types defined (`GameState`, `Player`, `Mission`, `ClientMessage`,
       `ServerMessage`)
 - [x] Server project scaffolded (`server/`), builds and runs independently (`npm run dev`)
-- [ ] Decide on and set up a shared-types solution (npm workspace, or accept manual sync for
-      MVP and document it clearly in the README)
+- [x] Decide on and set up a shared-types solution (npm workspace, or accept manual sync for
+      MVP and document it clearly in the README) — **decided: manual sync for MVP.** An npm
+      workspace would need to fold the Expo app and the `ws` server into one workspace root,
+      which risks Metro-bundler resolution issues for little payoff at this scale (one file,
+      `protocol.ts`). Documented the duplication and the rule for keeping both copies in sync
+      in the README instead; revisit as a workspace only if the protocol grows significantly.
 - [x] Server: split `sessionManager.ts` / `index.ts` into `domain/rules.ts` (pure rules),
       `application/sessionService.ts` (use cases), and `infrastructure/websocketServer.ts`
       (WebSocket glue) per §2.1 — `index.ts` is now a 3-line entry point
 - [x] Client: introduced the `viewmodels/` layer and migrated `JoinScreen.tsx` to use a
       `useSessionViewModel()` hook instead of managing socket + state directly, per §2.2
       (this becomes the template every later screen/minigame follows)
-- [ ] Add Zustand store(s) as the ViewModel layer's state mechanism, or explicitly decide to
+- [x] Add Zustand store(s) as the ViewModel layer's state mechanism, or explicitly decide to
       keep hook-based state and remove the unused dependency — either way, be consistent
-      across all screens
+      across all screens — **decided: dropped Zustand.** Each ViewModel today owns state
+      that's local to one screen/hook (`useSessionViewModel`'s `useState`s aren't read
+      anywhere else), so a shared store adds indirection without solving a real problem yet.
+      Removed the unused dependency (`npm uninstall zustand`) so the dependency list matches
+      what's actually used. Reconsider if a later phase needs state shared *across* independent
+      components (e.g. the parent dashboard reading state that other components also mutate).
 
 ## 4. Phase 2 — Connection Between Devices
 
@@ -234,15 +243,13 @@ split leaked somewhere earlier.
 
 ## 8. Known Gaps / Risks to Revisit
 
-- Protocol types are duplicated by hand between client and server — a missed edit on one
-  side will fail silently until runtime.
+- Protocol types are duplicated by hand between client and server (accepted for MVP, see
+  Phase 1) — a missed edit on one side will fail silently until runtime. README now documents
+  the rule; still worth double-checking both files whenever `protocol.ts` changes.
 - No mission-dependency logic yet, despite it being named in both the product brief and the
   "why it complies with the course" section — this is more than a nice-to-have, it's part of
   the pitched design.
 - No reconnect story for a child that drops mid-mission.
-- Zustand is installed but unused — either use it or drop it before submission so the
-  dependency list matches what's actually used (relevant to the "quality of code" grading
-  criterion).
 - `server/tsconfig.json` had a stray `"ignoreDeprecations": "6.0"` that doesn't match the
   pinned TypeScript version (`^5.5.0`) and failed `tsc` outright (TS5103) — removed. If a
   future TS upgrade needs this flag, use whatever value matches the version actually
