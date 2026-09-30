@@ -4,7 +4,7 @@
 // screen means the same logic could back a different-looking screen later
 // without being rewritten, and the screen has no idea a WebSocket exists.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useGameSocket } from '../lib/useGameSocket';
 import type { Player } from '../lib/protocol';
 
@@ -24,15 +24,27 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
   const [phase, setPhase] = useState<SessionPhase>('entering');
   const [errorText, setErrorText] = useState('');
   const [players, setPlayers] = useState<Player[]>([]);
+  const playerIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!lastMessage) return;
 
     if (lastMessage.type === 'join_ack') {
+      playerIdRef.current = lastMessage.playerId;
       setPhase('waiting');
       setPlayers(lastMessage.state.players);
     }
     if (lastMessage.type === 'join_error') {
+      setPhase('error');
+      setErrorText(lastMessage.reason);
+    }
+    if (lastMessage.type === 'reconnect_ack' && lastMessage.role === 'child') {
+      setPlayers(lastMessage.state.players);
+      if (lastMessage.state.status !== 'lobby') onGameStart?.();
+      else setPhase('waiting');
+    }
+    if (lastMessage.type === 'reconnect_error') {
+      playerIdRef.current = null;
       setPhase('error');
       setErrorText(lastMessage.reason);
     }
@@ -43,6 +55,12 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
       setPlayers(lastMessage.state.players);
     }
   }, [lastMessage, onGameStart]);
+
+  useEffect(() => {
+    if (isConnected && playerIdRef.current) {
+      socket?.send({ type: 'reconnect_session', code, role: 'child', playerId: playerIdRef.current });
+    }
+  }, [isConnected, code, socket]);
 
   function join() {
     if (code.length !== 4 || !name.trim()) return;

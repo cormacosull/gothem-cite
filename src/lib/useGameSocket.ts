@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import { GameSocket } from './websocket';
 import type { ServerMessage } from './protocol';
 
@@ -16,9 +17,15 @@ export function useGameSocket() {
     const unsubMessage = socket.onMessage(setLastMessage);
     const unsubStatus = socket.onStatusChange(setIsConnected);
 
+    // A backgrounded app socket tends to die quietly; retry as soon as the app is active again 
+    const appStateSub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') socket.reconnectNow();
+    });
+
     return () => {
       unsubMessage();
       unsubStatus();
+      appStateSub.remove();
       socket.disconnect();
     };
   }, []);

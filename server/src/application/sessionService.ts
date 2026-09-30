@@ -136,14 +136,52 @@ function endGame(session: Session, result: 'won' | 'lost') {
   for (const child of session.children.values()) send(child, message);
 }
 
-export function removeParent(code: string) {
+export function reconnectParent(
+  code: string,
+  parentSocket: WebSocket
+): { error: string } | { state: GameState } {
   const session = sessions.get(code);
-  if (session) session.parent = null;
+  if (!session) return { error: 'Session no longer exists.' };
+
+  session.parent = parentSocket;
+  broadcastState(session);
+  return { state: session.state };
 }
 
-export function removeChild(code: string, playerId: string) {
+export function reconnectChild(
+  code: string,
+  playerId: string,
+  childSocket: WebSocket
+): { error: string } | { state: GameState; mission: Mission | null } {
+  const session = sessions.get(code);
+  if (!session) return { error: 'Session no longer exists.' };
+
+  const player = session.state.players.find((p) => p.id === playerId);
+  if (!player) return { error: 'You are not part of this session.' };
+
+  session.children.set(playerId, childSocket);
+  player.connected = true;
+  broadcastState(session);
+
+  const mission = session.state.missions.find((m) => m.playerId === playerId && m.status === 'active') ?? null;
+  return { state: session.state, mission };
+}
+
+export function removeParent(code: string, socket: WebSocket) {
+  const session = sessions.get(code);
+  // A reconnect may already have replaced this socket by the time its
+  // 'close' event fires (events can arrive out of order) — only clear the
+  // parent if it's still the one that disconnected.
+  if (session && session.parent === socket) session.parent = null;
+}
+
+export function removeChild(code: string, playerId: string, socket: WebSocket) {
   const session = sessions.get(code);
   if (!session) return;
+  // Same race as removeParent: don't undo a reconnect that already
+  // replaced this socket for the player.
+  if (session.children.get(playerId) !== socket) return;
+
   session.children.delete(playerId);
   const player = session.state.players.find((p) => p.id === playerId);
   if (player) player.connected = false;

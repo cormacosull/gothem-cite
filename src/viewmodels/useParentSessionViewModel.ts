@@ -17,7 +17,7 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
   const [players, setPlayers] = useState<Player[]>([]);
 
   useEffect(() => {
-    if (isConnected && phase === 'connecting') {
+    if (isConnected && (phase === 'connecting' || phase === 'creating')) {
       setPhase('creating');
       socket?.send({ type: 'create_session' });
     }
@@ -35,7 +35,23 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
       setPlayers(lastMessage.state.players);
       if (lastMessage.state.status !== 'lobby') onGameStart?.();
     }
+    if (lastMessage.type === 'reconnect_ack' && lastMessage.role === 'parent') {
+      setPlayers(lastMessage.state.players);
+      setPhase('lobby');
+      if (lastMessage.state.status !== 'lobby') onGameStart?.();
+    }
+    if (lastMessage.type === 'reconnect_error') {
+      setCode('');
+      setPlayers([]);
+      setPhase('connecting');
+    }
   }, [lastMessage, onGameStart]);
+
+  useEffect(() => {
+    if (isConnected && code) {
+      socket?.send({ type: 'reconnect_session', code, role: 'parent' });
+    }
+  }, [isConnected, code, socket]);
 
   function startGame() {
     socket?.send({ type: 'start_game' });
