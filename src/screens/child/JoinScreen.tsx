@@ -13,8 +13,7 @@ import { PrimaryButton } from '../../components/PrimaryButton';
 import { colors, spacing, radii, inkShadow } from '../../theme/tokens';
 
 interface Props {
-  // Called once mission control starts the game, so whichever navigator
-  // wires this screen up can move on to character select / the minigame.
+  // Called once mission control starts the game
   onGameStart?: () => void;
 }
 

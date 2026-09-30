@@ -170,16 +170,21 @@ logic beyond "who's in the lobby."
       clean teardown)
 - [x] Client: Join screen — code entry, name entry, connecting/error states, live roster while
       waiting
-- [ ] Parent: session-create screen that actually calls `create_session` and displays the
+- [x] Parent: session-create screen that actually calls `create_session` and displays the
       returned code + live roster (currently a static placeholder)
 - [ ] Reconnect handling: what happens if a child's app backgrounds/reconnects mid-game
       (currently a disconnect is terminal for that player)
 - [ ] Config: confirm `EXPO_PUBLIC_SERVER_URL` usage and document how phones on the same
       Wi-Fi reach the laptop running the server (`.env.example` exists — verify README covers
       it)
-- [ ] Parent's session-create screen built as a View driven by a `useSessionViewModel()` (or
+- [x] Parent's session-create screen built as a View driven by a `useSessionViewModel()` (or
       equivalent parent-side ViewModel), not a component that calls the socket directly —
-      keeps Phase 1's MVVM split real instead of it only applying to the child
+      keeps Phase 1's MVVM split real instead of it only applying to the child — added
+      `useParentSessionViewModel()` (`src/viewmodels/useParentSessionViewModel.ts`) mirroring
+      the child's ViewModel: it opens the socket, fires `create_session` once connected, tracks
+      `phase`/`code`/`players` from `session_created`/`state_update`, and exposes `startGame()`.
+      `SessionCreateScreen` (`src/screens/parent/SessionCreateScreen.tsx`) only renders that
+      state — same split as `JoinScreen`/`useSessionViewModel`.
 
 ## 5. Phase 3 — Game Logic (with placeholder UI)
 

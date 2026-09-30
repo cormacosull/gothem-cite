@@ -1,26 +1,12 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing } from '../../src/theme/tokens';
+import { SessionCreateScreen } from '../../src/screens/parent/SessionCreateScreen';
 
 export default function ParentDashboardRoute() {
   return (
-    <View style={styles.screen}>
-      <Text style={styles.text}>Mission control dashboard — coming soon.</Text>
-    </View>
+    <SessionCreateScreen
+      onGameStart={() => {
+        // TODO: replace with router.push('/parent/dashboard') once the live dashboard screen exists (Phase 3).
+        console.log('game started — next: navigate to the live dashboard');
+      }}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.ink,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-  },
-  text: {
-    fontFamily: 'Nunito_700Bold',
-    color: colors.textOnInk,
-    fontSize: 16,
-    textAlign: 'center',
-  },
-});
