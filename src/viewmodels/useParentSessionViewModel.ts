@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useGameSocket } from '../lib/useGameSocket';
 import type { Player } from '../lib/protocol';
 
@@ -15,6 +15,15 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
   const [phase, setPhase] = useState<ParentSessionPhase>('connecting');
   const [code, setCode] = useState('');
   const [players, setPlayers] = useState<Player[]>([]);
+  const [isRunning, setIsRunning] = useState(false);
+
+  const onGameStartRef = useRef(onGameStart);
+  useEffect(() => {
+    onGameStartRef.current = onGameStart;
+  });
+
+  // Ensures navigation fires once per lobby, not after router.back()
+  const startedRef = useRef(false);
 
   useEffect(() => {
     if (isConnected && phase === 'connecting') {
@@ -33,11 +42,24 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
     }
     if (lastMessage.type === 'state_update') {
       setPlayers(lastMessage.state.players);
-      if (lastMessage.state.status !== 'lobby') onGameStart?.();
+      const started = lastMessage.state.status !== 'lobby';
+      setIsRunning(started);
+
+      if (started && !startedRef.current) {
+        startedRef.current = true;
+        onGameStartRef.current?.();
+      }
+      if (!started) {
+        startedRef.current = false;
+      }
     }
-  }, [lastMessage, onGameStart]);
+  }, [lastMessage]);
 
   function startGame() {
+    if (isRunning) {
+      onGameStartRef.current?.();
+      return;
+    }
     socket?.send({ type: 'start_game' });
   }
 
@@ -46,6 +68,7 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
     code,
     players,
     isConnected,
+    isRunning,
     startGame,
     canStart: phase === 'lobby' && players.length > 0,
   };
