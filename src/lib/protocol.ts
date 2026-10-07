@@ -13,6 +13,7 @@ export interface Player {
   name: string;
   connected: boolean;
   mission?: MissionType;
+  character?: string;
 }
 
 export interface Mission {
@@ -36,7 +37,8 @@ export type ClientMessage =
   | { type: 'join_session'; code: string; playerName: string }
   | { type: 'start_game' }
   | { type: 'mission_result'; missionId: string; success: boolean }
-  | { type: 'reconnect_session'; code: string; role: 'parent' | 'child'; playerId?: string };
+  | { type: 'reconnect_session'; code: string; role: 'parent' | 'child'; playerId?: string }
+  | { type: 'select_character'; characterId: string };
 
 // ---- Server -> Client ----
 export type ServerMessage =

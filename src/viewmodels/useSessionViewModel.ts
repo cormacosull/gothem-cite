@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useGameSocket } from '../lib/useGameSocket';
 import type { Player } from '../lib/protocol';
 
-export type SessionPhase = 'entering' | 'joining' | 'waiting' | 'error';
+export type SessionPhase = 'entering' | 'joining' | 'selecting' | 'waiting' | 'error';
 
 interface Options {
   // Called once mission control starts the game, so the screen can navigate
@@ -24,14 +24,25 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
   const [phase, setPhase] = useState<SessionPhase>('entering');
   const [errorText, setErrorText] = useState('');
   const [players, setPlayers] = useState<Player[]>([]);
+  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const playerIdRef = useRef<string | null>(null);
+
+  const onGameStartRef = useRef(onGameStart);
+  useEffect(() => {
+    onGameStartRef.current = onGameStart;
+  });
+
+  // A reconnect's state_update broadcast and its reconnect_ack carry the
+  // same state — this dedupes onGameStart across the two instead of firing
+  // it twice for one lobby->running transition.
+  const startedRef = useRef(false);
 
   useEffect(() => {
     if (!lastMessage) return;
 
     if (lastMessage.type === 'join_ack') {
       playerIdRef.current = lastMessage.playerId;
-      setPhase('waiting');
+      setPhase('selecting');
       setPlayers(lastMessage.state.players);
     }
     if (lastMessage.type === 'join_error') {
@@ -40,21 +51,39 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     }
     if (lastMessage.type === 'reconnect_ack' && lastMessage.role === 'child') {
       setPlayers(lastMessage.state.players);
-      if (lastMessage.state.status !== 'lobby') onGameStart?.();
-      else setPhase('waiting');
+      const started = lastMessage.state.status !== 'lobby';
+      if (started && !startedRef.current) {
+        startedRef.current = true;
+        onGameStartRef.current?.();
+      } else if (!started) {
+        startedRef.current = false;
+        // Reconnecting mid-selection shouldn't force a re-pick — resume
+        // wherever this player already was.
+        const me = lastMessage.state.players.find((p) => p.id === playerIdRef.current);
+        if (me?.character) {
+          setSelectedCharacterId(me.character);
+          setPhase('waiting');
+        } else {
+          setPhase('selecting');
+        }
+      }
     }
     if (lastMessage.type === 'reconnect_error') {
       playerIdRef.current = null;
       setPhase('error');
       setErrorText(lastMessage.reason);
     }
-    if (lastMessage.type === 'state_update' && lastMessage.state.status !== 'lobby') {
-      onGameStart?.();
+    if (lastMessage.type === 'state_update') {
+      const started = lastMessage.state.status !== 'lobby';
+      if (started && !startedRef.current) {
+        startedRef.current = true;
+        onGameStartRef.current?.();
+      } else if (!started) {
+        startedRef.current = false;
+        setPlayers(lastMessage.state.players);
+      }
     }
-    if (lastMessage.type === 'state_update' && lastMessage.state.status === 'lobby') {
-      setPlayers(lastMessage.state.players);
-    }
-  }, [lastMessage, onGameStart]);
+  }, [lastMessage]);
 
   useEffect(() => {
     if (isConnected && playerIdRef.current) {
@@ -68,6 +97,12 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     socket?.send({ type: 'join_session', code, playerName: name.trim() });
   }
 
+  function selectCharacter(characterId: string) {
+    setSelectedCharacterId(characterId);
+    socket?.send({ type: 'select_character', characterId });
+    setPhase('waiting');
+  }
+
   return {
     code,
     setCode,
@@ -79,5 +114,7 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     isConnected,
     join,
     canJoin: isConnected && code.length === 4 && !!name.trim(),
+    selectedCharacterId,
+    selectCharacter,
   };
 }

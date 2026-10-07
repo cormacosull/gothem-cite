@@ -10,6 +10,8 @@ import {
 import { useSessionViewModel } from '../../viewmodels/useSessionViewModel';
 import { CodeInput } from '../../components/CodeInput';
 import { PrimaryButton } from '../../components/PrimaryButton';
+import { CharacterCard } from '../../components/CharacterCard';
+import { CHARACTERS } from '../../lib/characters';
 import { colors, spacing, radii, inkShadow } from '../../theme/tokens';
 
 interface Props {
@@ -29,16 +31,22 @@ export function JoinScreen({ onGameStart }: Props) {
     isConnected,
     join,
     canJoin,
+    selectedCharacterId,
+    selectCharacter,
   } = useSessionViewModel({ onGameStart });
 
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Text style={styles.wordmark}>Gothem Cité</Text>
       <Text style={styles.tagline}>
-        {phase === 'waiting' ? 'Standing by for the signal' : 'Answer the call. Save the city.'}
+        {phase === 'selecting'
+          ? 'Pick your hero'
+          : phase === 'waiting'
+            ? 'Standing by for the signal'
+            : 'Answer the call. Save the city.'}
       </Text>
 
-      {phase !== 'waiting' && (
+      {(phase === 'entering' || phase === 'joining' || phase === 'error') && (
         <View style={styles.form}>
           <Text style={styles.label}>Mission code</Text>
           <CodeInput value={code} onChange={setCode} editable={phase !== 'joining'} />
@@ -65,6 +73,21 @@ export function JoinScreen({ onGameStart }: Props) {
           </View>
 
           {!isConnected && <Text style={styles.hint}>Connecting to mission control…</Text>}
+        </View>
+      )}
+
+      {phase === 'selecting' && (
+        <View style={styles.form}>
+          <View style={styles.characterGrid}>
+            {CHARACTERS.map((c) => (
+              <CharacterCard
+                key={c.id}
+                character={c}
+                selected={c.id === selectedCharacterId}
+                onPress={() => selectCharacter(c.id)}
+              />
+            ))}
+          </View>
         </View>
       )}
 
@@ -116,6 +139,12 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 340,
     alignItems: 'center',
+  },
+  characterGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing.md,
   },
   label: {
     fontFamily: 'Nunito_700Bold',

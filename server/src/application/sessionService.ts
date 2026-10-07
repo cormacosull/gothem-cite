@@ -74,6 +74,17 @@ export function joinSession(
   return { playerId, state: session.state };
 }
 
+export function selectCharacter(code: string, playerId: string, characterId: string) {
+  const session = sessions.get(code);
+  if (!session) return;
+
+  const player = session.state.players.find((p) => p.id === playerId);
+  if (!player) return;
+
+  player.character = characterId;
+  broadcastState(session);
+}
+
 export function startGame(code: string) {
   const session = sessions.get(code);
   if (!session || session.state.players.length === 0) return;

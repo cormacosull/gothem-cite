@@ -196,8 +196,23 @@ reports success/failure is enough at this stage).
 - [x] Server: `mission_result` handling — updates mission status, adjusts city health
       (+15 success / -10 failure), detects when all missions are resolved, ends the game
 - [x] Server: manual smoke test (`testClient.ts`) proving the full loop works headlessly
-- [ ] Character selection screen + message type (client picks a hero before missions are
-      assigned; currently missions are assigned round-robin with no player choice)
+- [x] Character selection screen + message type (client picks a hero before missions are
+      assigned; currently missions are assigned round-robin with no player choice) — **screen +
+      wire protocol done, placeholder only.** New `select_character` `ClientMessage` (both
+      `protocol.ts` copies) and `Player.character?: string`. Server:
+      `sessionService.selectCharacter()` stores the pick and broadcasts, no validation against
+      a fixed roster (the real hero list isn't decided yet — see Product Spec). Client: a new
+      `'selecting'` phase in `useSessionViewModel` sits between `join_ack` and `'waiting'`;
+      `JoinScreen` renders a grid of `CharacterCard`s (`src/components/CharacterCard.tsx`, a
+      plain colored rectangle + label — no art) for the 4 placeholder options in
+      `src/lib/characters.ts`; tapping one sends `select_character` and advances to `waiting`.
+      Reconnecting mid-game resumes without re-prompting if the player already has a
+      `character` set server-side. Verified live: pick persists server-side
+      (`character: "hero-2"` confirmed via a direct query) and the roster broadcasts it.
+      **Deliberately NOT done here** (belongs to game-logic work, not this slice): missions are
+      still assigned round-robin on `start_game`, ignoring the chosen character — wiring the
+      pick into mission assignment is a `domain/rules.ts` change for whoever owns Phase 3's
+      game-logic/mission-graph work.
 - [ ] Mission **dependencies**: replace "assign all missions at once" with a small mission
       graph (even a simple chain — Mission A → Mission B → Mission C is enough for MVP) so
       clearing one mission triggers/unlocks the next, per the brief. This is domain logic
@@ -209,7 +224,18 @@ reports success/failure is enough at this stage).
       only touches the View, never the mission logic.
 - [ ] Parent: live dashboard screen — City Integrity meter, active emergencies with
       countdowns, per-hero status (replacing the current static placeholder), driven by a
-      `useDashboardViewModel()`
+      `useDashboardViewModel()` — **in progress, still unchecked.** `app/parent/dashboard.tsx`
+      exists and `SessionCreateScreen` now navigates to it on game start, but it's a visual
+      shell only: hardcoded sample alert rows, no socket/ViewModel, not reading real
+      `GameState`. Also found while testing: on **web** specifically, the screen renders
+      essentially blank — `react-native-size-matters`'s `scale()` is computing `0` for every
+      font size and dimension (confirmed via computed styles: `fontSize: 0px`, `height: 0px`
+      on the alert table), which collapses all the text and the camera-box row to invisible.
+      Root cause looks like `Dimensions.get('window')` not being populated the way
+      `size-matters` expects under react-native-web — untested whether this also affects real
+      iOS/Android (where `Dimensions` behaves differently), so verify on a simulator/device
+      before relying on it, and reconsider `scale()` for anything on this screen if the gap
+      doesn't close on its own.
 - [ ] End-game screen (parent): win/loss banner + podium ranking
 - [ ] End-game screen (child): simple "mission's over" screen reflecting win/loss
 - [ ] Difficulty balancing pass: tune `HEALTH_DRAIN_PER_TICK`, `TICK_MS`,
@@ -244,6 +270,11 @@ split leaked somewhere earlier.
 - No automated tests on the client yet. At minimum, before each phase is considered "done,"
   do a manual run with the parent on one machine and 1–3 Expo Go clients on real phones on
   the same network, per the Hardware section of the project brief.
+- Re-verified after merging `feat-reconnection-handler` + `cormacosull/create-parent-dashboard`
+  into `main`: `npx tsc --noEmit` clean on both the client and server, and a full manual run
+  (web) through create → join → live roster update → start → dashboard navigation worked with
+  no console errors. Also re-ran the create/join/reconnect/race-guard protocol checks from the
+  Phase 2 reconnect work against the merged server — all still pass.
 
 ## 8. Known Gaps / Risks to Revisit
 
@@ -254,7 +285,16 @@ split leaked somewhere earlier.
   "why it complies with the course" section — this is more than a nice-to-have, it's part of
   the pitched design.
 - Reconnect (Phase 2) covers a dropped socket, not a killed/restarted app
-- `server/tsconfig.json` had a stray `"ignoreDeprecations": "6.0"` that doesn't match the
-  pinned TypeScript version (`^5.5.0`) and failed `tsc` outright (TS5103) — removed. If a
-  future TS upgrade needs this flag, use whatever value matches the version actually
-  installed.
+- `server/tsconfig.json`'s stray `"ignoreDeprecations": "6.0"` (invalid for the TypeScript
+  version actually installed, fails `tsc` outright with TS5103) has now reappeared and been
+  removed twice — once in Phase 1, again after the Phase 2 branches merged into `main`. If it
+  comes back a third time, check whichever branch/tool keeps regenerating `tsconfig.json`
+  rather than just deleting the line again.
+- The `useSessionViewModel`/`useParentSessionViewModel` reconnect paths (`reconnect_ack`) now
+  both dedupe `onGameStart` through the same `startedRef`/`onGameStartRef` pattern — a parent
+  reconnect sends a `state_update` broadcast immediately followed by a `reconnect_ack` for the
+  *same* state, so without the guard `onGameStart` (and eventually real navigation) would fire
+  twice for one lobby→running transition. Keep this pattern if a Phase 3 minigame ViewModel
+  ever needs its own "game already past this state" dedup logic.
+- `app/parent/dashboard.tsx` ("dummy dashboard") renders blank on web due to
+  `react-native-size-matters` — see the Phase 3 checklist item above.
