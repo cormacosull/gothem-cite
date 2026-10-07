@@ -48,6 +48,7 @@ export function SessionCreateScreen({ onGameStart }: Props) {
           <View style={styles.ctaRow}>
             <PrimaryButton label="Start the mission" onPress={startGame} disabled={!canStart} />
           </View>
+          {!isConnected && <Text style={styles.hint}>Reconnecting…</Text>}
         </View>
       )}
     </View>

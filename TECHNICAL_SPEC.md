@@ -172,11 +172,10 @@ logic beyond "who's in the lobby."
       waiting
 - [x] Parent: session-create screen that actually calls `create_session` and displays the
       returned code + live roster (currently a static placeholder)
-- [ ] Reconnect handling: what happens if a child's app backgrounds/reconnects mid-game
-      (currently a disconnect is terminal for that player)
-- [ ] Config: confirm `EXPO_PUBLIC_SERVER_URL` usage and document how phones on the same
-      Wi-Fi reach the laptop running the server (`.env.example` exists — verify README covers
-      it)
+- [x] Reconnect handling: what happens if a child's app backgrounds/reconnects mid-game
+      (currently a disconnect is terminal for that player) — a disconnect no longer ends a player's session. 
+- [x] Config: confirm `EXPO_PUBLIC_SERVER_URL` usage and document how phones on the same
+      Wi-Fi reach the laptop running the server (`.env.example` exists - README covers it)
 - [x] Parent's session-create screen built as a View driven by a `useSessionViewModel()` (or
       equivalent parent-side ViewModel), not a component that calls the socket directly —
       keeps Phase 1's MVVM split real instead of it only applying to the child — added
@@ -254,7 +253,7 @@ split leaked somewhere earlier.
 - No mission-dependency logic yet, despite it being named in both the product brief and the
   "why it complies with the course" section — this is more than a nice-to-have, it's part of
   the pitched design.
-- No reconnect story for a child that drops mid-mission.
+- Reconnect (Phase 2) covers a dropped socket, not a killed/restarted app
 - `server/tsconfig.json` had a stray `"ignoreDeprecations": "6.0"` that doesn't match the
   pinned TypeScript version (`^5.5.0`) and failed `tsc` outright (TS5103) — removed. If a
   future TS upgrade needs this flag, use whatever value matches the version actually

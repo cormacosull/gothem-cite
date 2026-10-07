@@ -35,7 +35,8 @@ export type ClientMessage =
   | { type: 'create_session' }
   | { type: 'join_session'; code: string; playerName: string }
   | { type: 'start_game' }
-  | { type: 'mission_result'; missionId: string; success: boolean };
+  | { type: 'mission_result'; missionId: string; success: boolean }
+  | { type: 'reconnect_session'; code: string; role: 'parent' | 'child'; playerId?: string };
 
 // ---- Server -> Client ----
 export type ServerMessage =
@@ -44,4 +45,6 @@ export type ServerMessage =
   | { type: 'join_error'; reason: string }
   | { type: 'state_update'; state: GameState }
   | { type: 'assign_mission'; mission: Mission }
-  | { type: 'game_over'; result: 'won' | 'lost' };
+  | { type: 'game_over'; result: 'won' | 'lost' }
+  | { type: 'reconnect_ack'; role: 'parent' | 'child'; playerId?: string; state: GameState }
+  | { type: 'reconnect_error'; reason: string };

@@ -43,6 +43,29 @@ function handleMessage(ws: WebSocket, message: ClientMessage) {
       if (info) sessions.reportMissionResult(info.code, message.missionId, message.success);
       break;
     }
+    case 'reconnect_session': {
+      if (message.role === 'parent') {
+        const result = sessions.reconnectParent(message.code, ws);
+        if ('error' in result) {
+          send(ws, { type: 'reconnect_error', reason: result.error });
+          return;
+        }
+        socketInfo.set(ws, { code: message.code, role: 'parent' });
+        send(ws, { type: 'reconnect_ack', role: 'parent', state: result.state });
+        break;
+      }
+
+      if (!message.playerId) return;
+      const result = sessions.reconnectChild(message.code, message.playerId, ws);
+      if ('error' in result) {
+        send(ws, { type: 'reconnect_error', reason: result.error });
+        return;
+      }
+      socketInfo.set(ws, { code: message.code, role: 'child', playerId: message.playerId });
+      send(ws, { type: 'reconnect_ack', role: 'child', playerId: message.playerId, state: result.state });
+      if (result.mission) send(ws, { type: 'assign_mission', mission: result.mission });
+      break;
+    }
   }
 }
 
@@ -63,8 +86,8 @@ export function startWebSocketServer(port: number): WebSocketServer {
     ws.on('close', () => {
       const info = socketInfo.get(ws);
       if (!info) return;
-      if (info.role === 'parent') sessions.removeParent(info.code);
-      if (info.role === 'child' && info.playerId) sessions.removeChild(info.code, info.playerId);
+      if (info.role === 'parent') sessions.removeParent(info.code, ws);
+      if (info.role === 'child' && info.playerId) sessions.removeChild(info.code, info.playerId, ws);
       socketInfo.delete(ws);
     });
   });
