@@ -80,6 +80,7 @@ export function JoinScreen({ onGameStart }: Props) {
             </Text>
           ))}
           <Text style={styles.hint}>Mission control will start the game shortly.</Text>
+          {!isConnected && <Text style={styles.hint}>Reconnecting…</Text>}
         </View>
       )}
     </KeyboardAvoidingView>
