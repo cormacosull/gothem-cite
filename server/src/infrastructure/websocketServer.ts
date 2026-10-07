@@ -43,6 +43,13 @@ function handleMessage(ws: WebSocket, message: ClientMessage) {
       if (info) sessions.reportMissionResult(info.code, message.missionId, message.success);
       break;
     }
+    case 'select_character': {
+      const info = socketInfo.get(ws);
+      if (info?.role === 'child' && info.playerId) {
+        sessions.selectCharacter(info.code, info.playerId, message.characterId);
+      }
+      break;
+    }
     case 'reconnect_session': {
       if (message.role === 'parent') {
         const result = sessions.reconnectParent(message.code, ws);
