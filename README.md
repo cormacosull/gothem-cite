@@ -24,12 +24,10 @@ You need two terminal windows: one for the websocket server, one for the Expo ap
 
 ### Testing on a real phone (not the web/simulator)
 
-The app is hardcoded to fall back to `ws://localhost:8080` for the server address. On a real
-phone, "localhost" means the phone itself, not your laptop — so without extra config the app
-will fail to connect with a WebSocket error. Fix:
+The app is hardcoded to fall back to `ws://localhost:8080` for the server address. On a real phone, "localhost" means the phone itself, not your laptop — so without extra config the app will fail to connect with a WebSocket error. 
 
-1. Make sure your phone and your laptop are on the **same network** (both on your home Wi-Fi,
-   or both on your phone's Personal Hotspot).
+Fix:
+1. Make sure your phone and your laptop are on the **same network** (both on your home Wi-Fi, or both on your phone's Personal Hotspot).
 2. Find your laptop's local IP on that network:
    ```
    ipconfig getifaddr en0
