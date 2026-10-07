@@ -10,6 +10,7 @@ export const colors = {
   signal: '#FFC53D', // bat-signal gold, the one hero accent
   signalDim: '#8A6A1E', // pressed/disabled state of signal
   alarm: '#E6483C', // danger/error red
+  resolved: "#69db7c",
   textOnInk: '#F2E9D8',
   textMuted: '#8C93A6',
 } as const;

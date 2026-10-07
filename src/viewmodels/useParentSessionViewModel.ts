@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useGameSocket } from '../lib/useGameSocket';
 import type { Player } from '../lib/protocol';
 
@@ -15,6 +15,15 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
   const [phase, setPhase] = useState<ParentSessionPhase>('connecting');
   const [code, setCode] = useState('');
   const [players, setPlayers] = useState<Player[]>([]);
+  const [isRunning, setIsRunning] = useState(false);
+
+  const onGameStartRef = useRef(onGameStart);
+  useEffect(() => {
+    onGameStartRef.current = onGameStart;
+  });
+
+  // Ensures navigation fires once per lobby, not after router.back()
+  const startedRef = useRef(false);
 
   useEffect(() => {
     if (isConnected && (phase === 'connecting' || phase === 'creating')) {
@@ -33,19 +42,45 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
     }
     if (lastMessage.type === 'state_update') {
       setPlayers(lastMessage.state.players);
-      if (lastMessage.state.status !== 'lobby') onGameStart?.();
+      const started = lastMessage.state.status !== 'lobby';
+      setIsRunning(started);
+
+      if (started && !startedRef.current) {
+        startedRef.current = true;
+        onGameStartRef.current?.();
+      }
+      if (!started) {
+        startedRef.current = false;
+      }
     }
+
     if (lastMessage.type === 'reconnect_ack' && lastMessage.role === 'parent') {
-      setPlayers(lastMessage.state.players);
       setPhase('lobby');
-      if (lastMessage.state.status !== 'lobby') onGameStart?.();
+      setPlayers(lastMessage.state.players);
+      const started = lastMessage.state.status !== 'lobby';
+      setIsRunning(started);
+
+      // A reconnect's state_update broadcast and its reconnect_ack carry the
+      // same state — startedRef (shared with the state_update branch above)
+      // keeps this from firing onGameStart a second time for one transition.
+      if (started && !startedRef.current) {
+        startedRef.current = true;
+        onGameStartRef.current?.();
+      }
+      if (!started) {
+        startedRef.current = false;
+      }
     }
     if (lastMessage.type === 'reconnect_error') {
+      // The session this device was running is gone (e.g. the server
+      // restarted) — fall back to opening a fresh one.
       setCode('');
       setPlayers([]);
+      setIsRunning(false);
+      startedRef.current = false;
       setPhase('connecting');
     }
-  }, [lastMessage, onGameStart]);
+  }, [lastMessage]);
 
   useEffect(() => {
     if (isConnected && code) {
@@ -54,6 +89,10 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
   }, [isConnected, code, socket]);
 
   function startGame() {
+    if (isRunning) {
+      onGameStartRef.current?.();
+      return;
+    }
     socket?.send({ type: 'start_game' });
   }
 
@@ -62,6 +101,7 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
     code,
     players,
     isConnected,
+    isRunning,
     startGame,
     canStart: phase === 'lobby' && players.length > 0,
   };
