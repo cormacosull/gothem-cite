@@ -85,7 +85,6 @@ export function selectCharacter(code: string, playerId: string, characterId: str
   broadcastState(session);
 }
 
-export function startGame(code: string) {
 export function startTutorial(code: string, socket: WebSocket): { error: string } | { ok: true } {
   const session = sessions.get(code);
   if (!session) return { error: 'No session with that code.' };
