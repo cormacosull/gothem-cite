@@ -33,9 +33,15 @@ function handleMessage(ws: WebSocket, message: ClientMessage) {
       send(ws, { type: 'join_ack', playerId: result.playerId, state: result.state });
       break;
     }
-    case 'start_game': {
+    case 'start_tutorial':
+    case 'tutorial_complete': {
       const info = socketInfo.get(ws);
-      if (info) sessions.startGame(info.code);
+      if (!info) return;
+      const result =
+        message.type === 'start_tutorial'
+          ? sessions.startTutorial(info.code, ws)
+          : sessions.completeTutorial(info.code, ws);
+      if ('error' in result) send(ws, { type: 'action_error', reason: result.error });
       break;
     }
     case 'mission_result': {

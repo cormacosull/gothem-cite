@@ -74,9 +74,23 @@ export function joinSession(
   return { playerId, state: session.state };
 }
 
-export function startGame(code: string) {
+export function startTutorial(code: string, socket: WebSocket): { error: string } | { ok: true } {
   const session = sessions.get(code);
-  if (!session || session.state.players.length === 0) return;
+  if (!session) return { error: 'No session with that code.' };
+  if (session.parent !== socket) return { error: 'Only mission control can do that.' };
+  if (session.state.status !== 'lobby') return { error: 'The mission has already started.' };
+  if (session.state.players.length === 0) return { error: 'Wait for at least one hero to join.' };
+
+  session.state.status = 'tutorial';
+  broadcastState(session); // children see status 'tutorial' and keep waiting
+  return { ok: true };
+}
+export function completeTutorial(code: string, socket: WebSocket): { error: string } | { ok: true } {
+  const session = sessions.get(code);
+  if (!session) return { error: 'No session with that code.' };
+  if (session.parent !== socket) return { error: 'Only mission control can do that.' };
+
+  if (session.state.status !== 'tutorial') return { ok: true };
 
   session.state.status = 'playing';
   assignMissions(session);
@@ -91,6 +105,8 @@ export function startGame(code: string) {
     }
     broadcastState(session);
   }, TICK_MS);
+
+  return { ok: true };
 }
 
 function assignMissions(session: Session) {
