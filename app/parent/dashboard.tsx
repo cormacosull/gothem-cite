@@ -2,94 +2,71 @@ import { View, Text, StyleSheet, ScrollView, Pressable, } from 'react-native';
 import { scale } from 'react-native-size-matters';
 import { colors } from '../../src/theme/tokens';
 import { router } from 'expo-router';
+import type { GameState, MissionType } from '../../src/lib/protocol';
 
-const Alerts = () => {
+const missionLabels: Record<MissionType, string> = {
+  fire: "Fire response",
+  chase: "Pursuit",
+  bomb: "Bomb threat",
+};
+
+function MissionBoard({ state }: { state: GameState }) {
   type AlertLine = {
     status: string;
     perpetrator: string;
     problem: string;
     playerDispatched: string;
   };
-  type Column = {
-    key: keyof AlertLine,
-    label: string,
-    width: `${number}%`
-  }
-  const sampleAlerts: AlertLine[] =
-    [
-      {
-        status: "Unresolved",
-        perpetrator: "The Jester",
-        problem: "Fire at the Complex",
-        playerDispatched: "Player 1",
-      },
-      {
-        status: "Unresolved",
-        perpetrator: "The Pidgeon",
-        problem: "Police chase on I-90",
-        playerDispatched: "Player 2",
-      },
-      {
-        status: "Unresolved",
-        perpetrator: "The Puzzer",
-        problem: "Bomb threat at the Town Hall",
-        playerDispatched: "Player 3",
-      },
-      {
-        status: "Resolved",
-        perpetrator: "The Jester",
-        problem: "Fire at the Mall",
-        playerDispatched: "Player 1",
-      }
-    ];
-
-  const COLUMNS: Column[] = [
-    { key: "status", label: "Status", width: "15%" },
-    { key: "perpetrator", label: "Perpetrator", width: "25%" },
-    { key: "problem", label: "Problem", width: "35%" },
-    { key: "playerDispatched", label: "Dispatched", width: "25%" },
+  const columns: { key: keyof AlertLine; label: string; width: `${number}%` }[] = [
+    { key: 'status', label: 'Status', width: '15%' },
+    { key: 'perpetrator', label: 'Perpetrator', width: '25%' },
+    { key: 'problem', label: 'Problem', width: '35%' },
+    { key: 'playerDispatched', label: 'Dispatched', width: '25%' },
   ];
-
-  const Header = () => (
-    <View style={styles.alertLine}>
-      {COLUMNS.map((col) => (
-        <Text key={col.key} style={[styles.alertHeaderCol, { width: col.width }]}>
-          {col.label.toUpperCase()}
-        </Text>
-      ))}
-    </View>
-  );
-
-
-  type LineProps = {
-    alert: AlertLine;
-    index: number;
-  };
-  const Line = ({ alert, index }: LineProps) => (
-    <View style={[styles.alertLine, index % 2 === 0 ? { backgroundColor: "rgba(255, 255, 255, 0.06)" } : { backgroundColor: "transparent" }]}>
-      {COLUMNS.map((col) => (
-        <Text key={col.key} style={[styles.alertLineCol, { width: col.width }]}>
-          {col.key === "status"
-            ? <Text style={alert.status === "Resolved" ? styles.statusResolved : styles.statusOpen}>{alert.status}</Text>
-            : alert[col.key]}
-        </Text>
-      ))}
-    </View>
-  );
+  const alerts = state.missions.map((mission): AlertLine => {
+    const player = state.players.find((candidate) => candidate.id === mission.playerId);
+    return {
+      status: mission.status === 'success' ? 'Resolved' : mission.status === 'failed' ? 'Failed' : 'Unresolved',
+      perpetrator: '-',
+      problem: missionLabels[mission.type],
+      playerDispatched: player?.name ?? 'Unknown hero',
+    };
+  });
 
   return (
     <View>
-      <View style={styles.alertHeaderLine}><Header /></View>
+      <View style={styles.alertHeaderLine}>
+        <View style={styles.alertLine}>
+          {columns.map((column) => (
+            <Text key={column.key} style={[styles.alertHeaderCol, { width: column.width }]}>
+              {column.label.toUpperCase()}
+            </Text>
+          ))}
+        </View>
+      </View>
       <ScrollView>
-        {sampleAlerts.map((alert, i) => (
-          <Line key={i} alert={alert} index={i} />
+        {alerts.length === 0 ? (
+          <Text style={styles.emptyMessage}>No missions have been assigned.</Text>
+        ) : alerts.map((alert, index) => (
+          <View key={state.missions[index].id} style={[styles.alertLine, index % 2 === 0 && styles.alertLineAlternate]}>
+            {columns.map((column) => (
+              <Text key={column.key} style={[styles.alertLineCol, { width: column.width }]}>
+                {column.key === 'status' ? (
+                  <Text style={alert.status === 'Resolved' ? styles.statusResolved : alert.status === 'Failed' ? styles.statusFailed : styles.statusOpen}>
+                    {alert.status}
+                  </Text>
+                ) : alert[column.key]}
+              </Text>
+            ))}
+          </View>
         ))}
       </ScrollView>
     </View>
-  )
+  );
 }
 
-export default function ParentDashboard() {
+export default function ParentDashboard({ state }: { state: GameState }) {
+  const cityHealth = Math.max(0, Math.min(100, state.cityHealth));
 
   return (
     <View style={styles.layout}>
@@ -100,6 +77,16 @@ export default function ParentDashboard() {
         </Text>
       </Pressable>
 
+      <View style={styles.healthTimer}>
+        <View style={styles.healthHeading}>
+          <Text style={styles.healthLabel}>CITY HEALTH</Text>
+          <Text style={styles.healthValue}>{cityHealth}%</Text>
+        </View>
+        <View style={styles.healthTrack}>
+          <View style={[styles.healthFill, { width: `${cityHealth}%` }, cityHealth <= 25 && styles.healthCritical]} />
+        </View>
+      </View>
+
       <View style={styles.topBar}>
         <View style={[styles.cameraBox, {backgroundColor:"green"}]} />
         <View style={[styles.cameraBox, {backgroundColor:"white"}]} />
@@ -108,7 +95,7 @@ export default function ParentDashboard() {
 
       <View style={styles.bottomBar}>
         <View style={styles.bottomBarMain}>
-          <Alerts />
+          <MissionBoard state={state} />
         </View>
 
       </View>
@@ -124,7 +111,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-evenly",
     alignItems: "center",
-    flexDirection: "column"
+    flexDirection: "column",
   },
   backButton:{
     position: "absolute",
@@ -134,7 +121,7 @@ const styles = StyleSheet.create({
     height: scale(30),
     borderRadius: scale(5),
     borderWidth: scale(3),
-    borderColor: "red",
+    borderColor: colors.alarm,
     backgroundColor: colors.paper,
     justifyContent: "center",
     alignItems: "center",
@@ -142,11 +129,50 @@ const styles = StyleSheet.create({
   buttonText:{
     fontSize: scale(25),
     color: colors.ink,
-    textAlign: "center"
+    textAlign: "center",
+  },
+  healthTimer: {
+    width: "80%",
+    backgroundColor: colors.panel,
+    paddingVertical: scale(8),
+    paddingHorizontal: scale(12),
+    borderRadius: scale(4),
+    borderColor: colors.inkLine,
+    borderWidth: scale(2),
+  },
+  healthLabel: {
+    color: colors.textOnInk,
+    fontSize: scale(11),
+    fontWeight: "bold",
+  },
+  healthHeading: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  healthValue: {
+    color: colors.signal,
+    fontSize: scale(13),
+    fontWeight: "bold",
+  },
+  healthTrack: {
+    height: scale(8),
+    backgroundColor: colors.ink,
+    borderWidth: scale(1),
+    borderColor: colors.inkLine,
+    marginTop: scale(5),
+    overflow: "hidden",
+  },
+  healthFill: {
+    height: "100%",
+    backgroundColor: colors.resolved,
+  },
+  healthCritical: {
+    backgroundColor: colors.alarm,
   },
   topBar: {
     width: "80%",
-    height: "40%",
+    height: "37.5%",
     backgroundColor: "grey",
     flexDirection: "row",
     justifyContent: "space-around",
@@ -154,11 +180,11 @@ const styles = StyleSheet.create({
     borderRadius: scale(20),
     borderColor: "black",
     borderWidth: scale(4),
-
   },
   cameraBox: {
-    width: scale(160),
+    width: scale(145),
     height: scale(120),
+    maxWidth: "30%",
     borderRadius: scale(20),
     borderColor: "black",
     borderBottomWidth: scale(15),
@@ -168,11 +194,10 @@ const styles = StyleSheet.create({
   },
   bottomBar: {
     width: "80%",
-    height: "40%",
+    height: "35%",
     alignItems: "center",
     backgroundColor: colors.panel,
     borderRadius: scale(4),
-
   },
   bottomBarMain: {
     flex: 1,
@@ -190,7 +215,6 @@ const styles = StyleSheet.create({
     fontSize: scale(9),
     fontWeight: "bold",
     color: "rgba(255, 255, 255, 0.85)",
-    letterSpacing: 0.5,
   },
   alertLine: {
     flexDirection: "row",
@@ -198,10 +222,21 @@ const styles = StyleSheet.create({
     paddingVertical: scale(5),
     paddingHorizontal: scale(6),
   },
-
+  alertLineAlternate: {
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+  },
   alertLineCol: {
     fontSize: scale(10),
     color: "white",
+  },
+  statusColumn: {
+    width: "25%",
+  },
+  problemColumn: {
+    width: "45%",
+  },
+  playerColumn: {
+    width: "30%",
   },
   statusOpen: {
     color: colors.alarm,
@@ -211,5 +246,14 @@ const styles = StyleSheet.create({
     color: colors.resolved,
     fontWeight: "bold",
   },
-
-})
+  statusFailed: {
+    color: colors.alarm,
+    fontWeight: "bold",
+  },
+  emptyMessage: {
+    color: colors.textMuted,
+    fontSize: scale(13),
+    paddingVertical: scale(16),
+    paddingHorizontal: scale(6),
+  },
+});
