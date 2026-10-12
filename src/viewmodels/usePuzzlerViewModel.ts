@@ -28,12 +28,14 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
   // Adds a letter to the current guess if the game is still playing and the guess isn't full
   function addLetter(letter: string) {
     if (status !== 'playing' || currentGuess.length >= WORD_LENGTH) return;
+    setErrorText('');
     setCurrentGuess(currentGuess + letter.toUpperCase());
   }
 
   // Removes the last letter from the current guess if the game is still playing
   function deleteLetter() {
     if (status !== 'playing') return;
+    setErrorText('');
     setCurrentGuess(currentGuess.slice(0, -1));
   }
 
