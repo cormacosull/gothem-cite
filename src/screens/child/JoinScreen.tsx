@@ -14,6 +14,7 @@ import { CharacterCard } from '../../components/CharacterCard';
 import { CHARACTERS } from '../../lib/characters';
 import { IntroScreen } from '../IntroScreen';
 import { StandbyScreen } from './StandbyScreen';
+import { ChaseScreen } from './chase/ChaseScreen';
 import { colors, spacing, radii, inkShadow } from '../../theme/tokens';
 
 interface Props {
@@ -36,6 +37,9 @@ export function JoinScreen({ onGameStart }: Props) {
     selectedCharacterId,
     selectCharacter,
     finishIntro,
+    mission,
+    reportMissionResult,
+    returnToStandby,
   } = useSessionViewModel({ onGameStart });
 
   return (
@@ -98,7 +102,13 @@ export function JoinScreen({ onGameStart }: Props) {
 
       {phase === 'intro' && <IntroScreen players={players} onFinish={finishIntro} />}
 
-      {phase === 'standby' && <StandbyScreen selectedCharacterId={selectedCharacterId} />}
+      {phase === 'standby' && mission?.type === 'chase' && (
+        <ChaseScreen onFinish={reportMissionResult} onContinue={returnToStandby} />
+      )}
+
+      {phase === 'standby' && mission?.type !== 'chase' && (
+        <StandbyScreen selectedCharacterId={selectedCharacterId} />
+      )}
 
       {phase === 'waiting' && (
         <View style={styles.form}>

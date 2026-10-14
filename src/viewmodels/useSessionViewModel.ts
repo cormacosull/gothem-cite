@@ -1,12 +1,17 @@
-// ViewModel for the "join a session" flow. Owns the join/lobby state and the
-// socket interaction; the View (JoinScreen) just renders whatever this
-// returns and calls `join()` on user input. Keeping this separate from the
-// screen means the same logic could back a different-looking screen later
-// without being rewritten, and the screen has no idea a WebSocket exists.
-
 import { useEffect, useRef, useState } from 'react';
 import { useGameSocket } from '../lib/useGameSocket';
-import type { Player } from '../lib/protocol';
+import type { Player, Mission } from '../lib/protocol';
+
+function findOwnMission(missions: Mission[], playerId: string | null): Mission | null {
+  if (!playerId) return null;
+  return missions.find((m) => m.playerId === playerId && m.status === 'active') ?? null;
+}
+
+function adoptMissionIfFound(current: Mission | null, missions: Mission[], playerId: string | null): Mission | null {
+  const found = findOwnMission(missions, playerId);
+  if (!found) return current;
+  return current?.id === found.id ? current : found;
+}
 
 export type SessionPhase =
   | 'entering'
@@ -33,6 +38,7 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
   const [errorText, setErrorText] = useState('');
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
+  const [mission, setMission] = useState<Mission | null>(null);
   const playerIdRef = useRef<string | null>(null);
 
   const onGameStartRef = useRef(onGameStart);
@@ -65,8 +71,7 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
         setPhase('intro');
       } else if (!started) {
         startedRef.current = false;
-        // Reconnecting mid-selection shouldn't force a re-pick — resume
-        // wherever this player already was.
+        // Reconnecting mid-selection shouldn't force a re-pick 
         const me = lastMessage.state.players.find((p) => p.id === playerIdRef.current);
         if (me?.character) {
           setSelectedCharacterId(me.character);
@@ -75,11 +80,18 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
           setPhase('selecting');
         }
       }
+      if (started) {
+        const missions = lastMessage.state.missions;
+        setMission((current) => adoptMissionIfFound(current, missions, playerIdRef.current));
+      }
     }
     if (lastMessage.type === 'reconnect_error') {
       playerIdRef.current = null;
       setPhase('error');
       setErrorText(lastMessage.reason);
+    }
+    if (lastMessage.type === 'assign_mission') {
+      setMission(lastMessage.mission);
     }
     if (lastMessage.type === 'state_update') {
       const started = lastMessage.state.status !== 'lobby';
@@ -89,6 +101,10 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
       } else if (!started) {
         startedRef.current = false;
         setPlayers(lastMessage.state.players);
+      }
+      if (started) {
+        const missions = lastMessage.state.missions;
+        setMission((current) => adoptMissionIfFound(current, missions, playerIdRef.current));
       }
     }
   }, [lastMessage]);
@@ -116,6 +132,15 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     onGameStartRef.current?.();
   }
 
+  function reportMissionResult(success: boolean) {
+    if (!mission) return;
+    socket?.send({ type: 'mission_result', missionId: mission.id, success });
+  }
+
+  function returnToStandby() {
+    setMission(null);
+  }
+
   return {
     code,
     setCode,
@@ -130,5 +155,8 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     selectedCharacterId,
     selectCharacter,
     finishIntro,
+    mission,
+    reportMissionResult,
+    returnToStandby,
   };
 }
