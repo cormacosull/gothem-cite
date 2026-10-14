@@ -89,7 +89,7 @@ no illustration/pixel art yet) unless marked "not yet implemented."
 | Intro/lore | Scenario, villains, the team, the City Integrity meter, and the mission types — auto-advancing slides, skippable | Implemented (placeholder art — rectangle per slide, real illustrations pending Phase 4) |
 | Standby | Holding screen after the intro, before a mission is assigned — "you'll be called into action" | Implemented (placeholder; nothing yet moves a hero out of it once `assign_mission` actually arrives) |
 | Minigame: Fire | Put out fires (The Jester) | Not yet implemented |
-| Minigame: Chase | Police chase (The Pidgeon) | Not yet implemented |
+| Minigame: Chase | Police chase (The Pidgeon) — 3-lane dodger, swipe or tilt, survive the timer | Implemented (placeholder art — colored rectangles, real sprites pending Phase 4) |
 | Minigame: Bomb | Bomb defusal puzzle (The Puzzler) | Not yet implemented |
 | Mission result screen | Confirms success/failure, waits for next assignment | Not yet implemented |
 

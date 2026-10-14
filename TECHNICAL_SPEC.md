@@ -251,7 +251,63 @@ reports success/failure is enough at this stage).
       visually plain — each just needs a way to trigger a `mission_result` (success/fail) so the
       full loop can be tested by real people, not just the smoke-test script. Each gets its own
       ViewModel (e.g. `useFireMissionViewModel()`) so the eventual pixel-art pass in Phase 4
-      only touches the View, never the mission logic.
+      only touches the View, never the mission logic. **chase done; fire not started; bomb
+      exists but isn't wired into the mission loop yet** (see below).
+      - [x] **Chase** ("The Pidgeon") — a Temple Run-style 3-lane dodger. Player swipes
+        left/right, or tilts the device (`expo-sensors` `Accelerometer`, new dependency —
+        gated to native only, see `useChaseMissionViewModel.ts`), to dodge obstacles falling
+        toward them; survive `SURVIVAL_MS` (20s) with no collision to win, one hit and it's an
+        instant loss. Same split as Puzzler: `src/screens/child/chase/logic.ts` (pure, no
+        React/sockets — obstacle spawn/advance/collision), `useChaseMissionViewModel.ts` (game
+        loop + both input methods), `ChaseScreen.tsx` (render only). Placeholder art
+        throughout — colored rectangles, no sprites (Phase 4). This is also the **first
+        minigame that actually closes the server loop**: it sends real `mission_result`, unlike
+        Puzzler (still a route-level TODO there).
+      - [x] **Mission dispatch** (didn't exist before this — the TODO in `app/child/index.tsx`
+        named a future `/child/mission` route, nothing implemented it). Built it *without* a
+        separate route: `useSessionViewModel` now tracks `mission: Mission | null` (set on
+        `assign_mission`) and exposes `reportMissionResult()`/`returnToStandby()`, all still
+        going through the *same* socket connection the whole session already uses — avoids the
+        same multi-socket problem flagged for `useParentSessionViewModel` earlier. `JoinScreen`
+        renders `ChaseScreen` inline when `mission?.type === 'chase'`, else falls back to
+        `StandbyScreen` (fire/bomb intentionally untouched — still park there, same as before).
+        The minigame screen doesn't disappear the instant `mission_result` is sent — it shows
+        its own win/lose state with a "Continue" button that's what actually returns to
+        standby, so the player sees the outcome instead of the screen vanishing mid-result.
+      - **Found & fixed live, not caused by this feature but blocking it**: `react-native-web`'s
+        `Dimensions` has a one-shot caching bug (first-ever `.get('window')` call in the whole
+        app freezes the result until an actual browser resize) that was already silently
+        breaking `TutorialDemo`/`ParentDashboard` on web (both use `scale()` from
+        `react-native-size-matters`, module-level, so the freeze was permanent). Replaced with
+        `src/lib/scale.ts`, a drop-in that reads `window.innerWidth`/`innerHeight` directly on
+        web — but even that isn't enough on a true cold start, since Expo Router's web output
+        does an initial static-render pass before a real `window` exists, which would
+        module-level-freeze `scale()` at whatever `src/lib/scale.ts` falls back to in that
+        pass. Fixed by making the fallback itself never be `0` (degrades to the guideline base,
+        i.e. ~1x, instead of collapsing the layout) — verified fixed with a true cold start
+        (fresh `npx expo start`, not just a hot-reloaded session), which is what originally
+        exposed it.
+      - **Found & fixed from a real-device report** (`assign_mission` never arrived, a phone
+        got stuck on standby forever despite mission control showing the mission correctly
+        assigned): `assign_mission` is a one-shot direct push from the server — a phone's
+        transient wifi drop right around assignment time is enough to lose that one packet.
+        `useSessionViewModel` now also derives `mission` from `state.missions` (already
+        broadcast on every `state_update`/`reconnect_ack` regardless), self-healing within one
+        broadcast cycle instead of depending on that single message landing. Verified against
+        the live server by reproducing the exact failure (child offline right as missions are
+        assigned) and confirming reconnecting recovers the correct mission.
+      - **Found & fixed immediately after, from the same report** ("played successfully, but
+        mission stayed Unresolved on the dashboard"): the fix above over-corrected — resyncing
+        `mission` from *every* broadcast also cleared it back to `null` the instant the server
+        marked the mission resolved, which is the very next broadcast after `mission_result` is
+        sent (often within the same tick). That raced ahead of the player ever seeing
+        `ChaseScreen`'s win/lose screen or tapping "Continue," yanking them back to standby
+        before they could tell anything happened — and made it look like the result never
+        reached the server, even though (confirmed live) it had. Fixed by only ever having the
+        resync *adopt* a newly-found mission (still self-healing the original bug), never
+        clear one away on its own — only `returnToStandby()` (the player's own "Continue" tap)
+        does that now. Verified live: the "Busted!"/"Continue" screen now correctly stays up
+        until dismissed, and the dashboard still updates correctly either way.
 - [ ] Parent: live dashboard screen — City Integrity meter, active emergencies with
       countdowns, per-hero status (replacing the current static placeholder), driven by a
       `useDashboardViewModel()` — **in progress, still unchecked.** `app/parent/dashboard.tsx`

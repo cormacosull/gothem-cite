@@ -22,10 +22,18 @@ const GUIDELINE_BASE_WIDTH = 350;
 const GUIDELINE_BASE_HEIGHT = 680;
 
 function windowSize(): { width: number; height: number } {
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.innerWidth > 0) {
     return { width: window.innerWidth, height: window.innerHeight };
   }
-  return Dimensions.get('window');
+  const fallback = Dimensions.get('window');
+  if (fallback.width > 0) return fallback;
+  // Neither source has a real size yet — most likely `scale()` is being
+  // called from a module-level StyleSheet.create(), which only evaluates
+  // once, during Expo Router's web output's initial static-render pass
+  // (before a real `window` exists). Falling back to the guideline size
+  // itself makes scale() degrade to a harmless ~1x instead of being
+  // permanently frozen at 0 and collapsing the whole layout.
+  return { width: GUIDELINE_BASE_WIDTH, height: GUIDELINE_BASE_HEIGHT };
 }
 
 function shortAndLongDimension(): [number, number] {
