@@ -45,13 +45,16 @@ const parent = connect(
         child.send({ type: 'join_session', code: message.code, playerName: 'Fatoumata' });
       }, 300);
     }
+    if (message.type === 'state_update' && message.state.status === 'tutorial') {
+      setTimeout(() => parent.send({ type: 'tutorial_complete' }), 300);
+    }
   },
   (send) => send({ type: 'create_session' })
 );
 
 child = connect('child', (message) => {
   if (message.type === 'join_ack') {
-    setTimeout(() => parent.send({ type: 'start_game' }), 300);
+    setTimeout(() => parent.send({ type: 'start_tutorial' }), 300);
   }
   if (message.type === 'assign_mission') {
     console.log(`\n[child] assigned mission: ${message.mission.type}\n`);
