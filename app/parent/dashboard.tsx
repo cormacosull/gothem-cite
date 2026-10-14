@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, } from 'react-native';
-import { scale } from 'react-native-size-matters';
+import { scale } from '../../src/lib/scale';
 import { colors } from '../../src/theme/tokens';
 import { router } from 'expo-router';
 import type { GameState, MissionType } from '../../src/lib/protocol';
