@@ -1,35 +1,32 @@
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { useParentSessionViewModel } from '../../viewmodels/useParentSessionViewModel';
 import { PrimaryButton } from '../../components/PrimaryButton';
-import { IntroScreen } from '../IntroScreen';
 import { colors, spacing, radii, inkShadow } from '../../theme/tokens';
+import type { Player } from '../../lib/protocol';
 
 interface Props {
-  // Called once mission control starts the game
-  onGameStart?: () => void;
+  code?: string;
+  players?: Player[];
+  error?: string | null;
+  onStart?: () => void;
 }
 
-export function SessionCreateScreen({ onGameStart }: Props) {
-  const { phase, code, players, isConnected, startGame, canStart, finishIntro } =
-    useParentSessionViewModel({ onGameStart });
+export function SessionCreateScreen({ code = '', players = [], error, onStart }: Props) {
+  const hasSession = code.length > 0;
 
   return (
     <View style={styles.screen}>
       <Text style={styles.wordmark}>Gothem Cité</Text>
-      {phase !== 'intro' && <Text style={styles.tagline}>Mission control</Text>}
+      <Text style={styles.tagline}>Mission control</Text>
 
-      {(phase === 'connecting' || phase === 'creating') && (
+      {!hasSession && (
         <View style={styles.form}>
           <ActivityIndicator color={colors.signal} />
-          <Text style={styles.hint}>
-            {isConnected ? 'Opening a session…' : 'Connecting to the server…'}
-          </Text>
+          <Text style={styles.hint}>Opening a session...</Text>
+          {error && <Text style={styles.error}>{error}</Text>}
         </View>
       )}
 
-      {phase === 'intro' && <IntroScreen players={players} onFinish={finishIntro} />}
-
-      {phase === 'lobby' && (
+      {hasSession && (
         <View style={styles.form}>
           <Text style={styles.label}>Have heroes join with this code</Text>
           <View style={styles.codeBadge}>
@@ -38,19 +35,19 @@ export function SessionCreateScreen({ onGameStart }: Props) {
 
           <Text style={styles.subheading}>On the roster ({players.length})</Text>
           {players.length === 0 ? (
-            <Text style={styles.hint}>Waiting for heroes to join…</Text>
+            <Text style={styles.hint}>Waiting for heroes to join...</Text>
           ) : (
-            players.map((p) => (
-              <Text key={p.id} style={styles.playerRow}>
-                • {p.name}
+            players.map((player) => (
+              <Text key={player.id} style={styles.playerRow}>
+                - {player.name}
               </Text>
             ))
           )}
 
           <View style={styles.ctaRow}>
-            <PrimaryButton label="Start the mission" onPress={startGame} disabled={!canStart} />
+            <PrimaryButton label="Start the briefing" onPress={onStart ?? (() => {})} disabled={!onStart || players.length === 0} />
           </View>
-          {!isConnected && <Text style={styles.hint}>Reconnecting…</Text>}
+          {error && <Text style={styles.error}>{error}</Text>}
         </View>
       )}
     </View>
@@ -100,6 +97,13 @@ const styles = StyleSheet.create({
   hint: {
     fontFamily: 'Nunito_400Regular',
     color: colors.textMuted,
+    marginTop: spacing.md,
+    textAlign: 'center',
+    fontSize: 13,
+  },
+  error: {
+    fontFamily: 'Nunito_700Bold',
+    color: colors.alarm,
     marginTop: spacing.md,
     textAlign: 'center',
     fontSize: 13,

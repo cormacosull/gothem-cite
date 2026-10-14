@@ -6,7 +6,7 @@
 // so both sides import from one real shared package instead.
 
 export type MissionType = 'fire' | 'chase' | 'bomb';
-export type GameStatus = 'lobby' | 'playing' | 'won' | 'lost';
+export type GameStatus = 'lobby' | 'tutorial' | 'playing' | 'won' | 'lost';
 
 export interface Player {
   id: string;
@@ -35,7 +35,8 @@ export interface GameState {
 export type ClientMessage =
   | { type: 'create_session' }
   | { type: 'join_session'; code: string; playerName: string }
-  | { type: 'start_game' }
+  | { type: 'start_tutorial' }
+  | { type: 'tutorial_complete' } 
   | { type: 'mission_result'; missionId: string; success: boolean }
   | { type: 'reconnect_session'; code: string; role: 'parent' | 'child'; playerId?: string }
   | { type: 'select_character'; characterId: string };
@@ -49,4 +50,6 @@ export type ServerMessage =
   | { type: 'assign_mission'; mission: Mission }
   | { type: 'game_over'; result: 'won' | 'lost' }
   | { type: 'reconnect_ack'; role: 'parent' | 'child'; playerId?: string; state: GameState }
-  | { type: 'reconnect_error'; reason: string };
+  | { type: 'reconnect_error'; reason: string }
+  | { type: 'action_error'; reason: string };
+
