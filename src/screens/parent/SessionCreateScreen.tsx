@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useParentSessionViewModel } from '../../viewmodels/useParentSessionViewModel';
 import { PrimaryButton } from '../../components/PrimaryButton';
+import { IntroScreen } from '../IntroScreen';
 import { colors, spacing, radii, inkShadow } from '../../theme/tokens';
 
 interface Props {
@@ -9,16 +10,15 @@ interface Props {
 }
 
 export function SessionCreateScreen({ onGameStart }: Props) {
-  const { phase, code, players, isConnected, startGame, canStart } = useParentSessionViewModel({
-    onGameStart,
-  });
+  const { phase, code, players, isConnected, startGame, canStart, finishIntro } =
+    useParentSessionViewModel({ onGameStart });
 
   return (
     <View style={styles.screen}>
       <Text style={styles.wordmark}>Gothem Cité</Text>
-      <Text style={styles.tagline}>Mission control</Text>
+      {phase !== 'intro' && <Text style={styles.tagline}>Mission control</Text>}
 
-      {phase !== 'lobby' && (
+      {(phase === 'connecting' || phase === 'creating') && (
         <View style={styles.form}>
           <ActivityIndicator color={colors.signal} />
           <Text style={styles.hint}>
@@ -26,6 +26,8 @@ export function SessionCreateScreen({ onGameStart }: Props) {
           </Text>
         </View>
       )}
+
+      {phase === 'intro' && <IntroScreen players={players} onFinish={finishIntro} />}
 
       {phase === 'lobby' && (
         <View style={styles.form}>

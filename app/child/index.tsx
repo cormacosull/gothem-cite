@@ -4,9 +4,12 @@ export default function ChildJoinRoute() {
   return (
     <JoinScreen
       onGameStart={() => {
-        // TODO: replace with router.push('/child/mission') once the
-        // character-select / minigame routes exist.
-        console.log('game started — next: navigate to the assigned minigame');
+        // Fires once the intro finishes; the screen moves to a "Standing
+        // By" placeholder. TODO: once mission assignment is wired up and
+        // minigame routes exist, navigate to router.push('/child/mission')
+        // when this player's mission actually arrives, instead of sitting
+        // on the standby screen indefinitely.
+        console.log('intro finished — on standby for a mission assignment');
       }}
     />
   );

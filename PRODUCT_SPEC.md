@@ -85,8 +85,9 @@ no illustration/pixel art yet) unless marked "not yet implemented."
 | Role select | Choose "Mission control" vs "I'm a hero" | Implemented |
 | Join screen | Enter code + alias, see connection/error states | Implemented |
 | Lobby / waiting room | Roster of joined heroes, waiting for host to start | Implemented (as part of Join screen) |
-| Character select | Pick a hero identity | Not yet implemented |
-| Intro/lore | Short explanation of the scenario and villains | Not yet implemented |
+| Character select | Pick a hero identity | Implemented (placeholder art — 4 colored rectangles, no real hero identities yet) |
+| Intro/lore | Scenario, villains, the team, the City Integrity meter, and the mission types — auto-advancing slides, skippable | Implemented (placeholder art — rectangle per slide, real illustrations pending Phase 4) |
+| Standby | Holding screen after the intro, before a mission is assigned — "you'll be called into action" | Implemented (placeholder; nothing yet moves a hero out of it once `assign_mission` actually arrives) |
 | Minigame: Fire | Put out fires (The Jester) | Not yet implemented |
 | Minigame: Chase | Police chase (The Pidgeon) | Not yet implemented |
 | Minigame: Bomb | Bomb defusal puzzle (The Puzzler) | Not yet implemented |

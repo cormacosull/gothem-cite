@@ -217,6 +217,36 @@ reports success/failure is enough at this stage).
       graph (even a simple chain — Mission A → Mission B → Mission C is enough for MVP) so
       clearing one mission triggers/unlocks the next, per the brief. This is domain logic
       (§2.1) — belongs in `domain/rules/`, testable without a socket.
+- [x] Intro/lore sequence (**both devices**): shown once mission control starts the game,
+      independently on the parent and every child, before each moves on — auto-advancing
+      slides, skippable, per Product Spec's "Intro/lore" screen row (wasn't its own Phase 3
+      bullet before now). Moved to a shared `src/screens/IntroScreen.tsx` (was child-only) so
+      both `useSessionViewModel` (child) and `useParentSessionViewModel` (parent) can route
+      their game-start transition through a new `'intro'` phase instead of calling
+      `onGameStart` directly — each has its own `finishIntro()` that the last slide (or Skip)
+      eventually calls. Content: `src/lib/villains.ts` (the 3 fugitives, matching Product
+      Spec's villain table) and `useIntroViewModel` (`src/viewmodels/useIntroViewModel.ts`),
+      which builds 4 slides — fugitives, "band of heroes" (live player names from the roster),
+      the City Integrity meter, mission types — and owns a per-slide 6s auto-advance timer.
+      `IntroSlide` (`src/components/IntroSlide.tsx`) is a plain rectangle + heading + body
+      text, no art yet (Phase 4). Found and fixed live: Skip fired `onGameStart` correctly,
+      but since nothing yet navigates away on the child side (no minigame route exists), the
+      intro's own timer kept running underneath and could *also* fire `onGameStart` a second
+      time once it later reached the end on its own — same double-fire class already fixed
+      twice elsewhere this session. Guarded with a `finishedRef` so `onFinish` fires at most
+      once no matter which path reaches it first; verified by waiting 25s+ past a Skip press
+      with only one log line. On game start, **parent** now goes lobby → intro → (Skip/timer)
+      → `router.push('/parent/dashboard')` (unchanged destination, just delayed by the intro).
+      **Child** now goes intro → a new `StandbyScreen` (`src/screens/child/StandbyScreen.tsx`,
+      new `'standby'` phase) — "Standing By, mission control is sizing up the situation" plus
+      the player's chosen hero color as a small badge — instead of silently doing nothing.
+      This is a terminal placeholder: nothing yet moves a child out of `'standby'` once a
+      mission is actually assigned (missions are assigned round-robin immediately on
+      `start_game` today, but the client never reads `assign_mission`) — wiring that up is for
+      whoever builds the minigame screens/routes. Verified live end-to-end on both devices
+      simultaneously: start → both see the intro (same live player-name interpolation) →
+      parent Skip → lands on `/parent/dashboard`; child Skip → lands on `StandbyScreen` showing
+      the correct picked-hero color.
 - [ ] Three placeholder minigame screens (fire/chase/bomb) that are functionally correct but
       visually plain — each just needs a way to trigger a `mission_result` (success/fail) so the
       full loop can be tested by real people, not just the smoke-test script. Each gets its own

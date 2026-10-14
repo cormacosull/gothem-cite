@@ -2,10 +2,12 @@ import { useEffect, useState, useRef } from 'react';
 import { useGameSocket } from '../lib/useGameSocket';
 import type { Player } from '../lib/protocol';
 
-export type ParentSessionPhase = 'connecting' | 'creating' | 'lobby';
+export type ParentSessionPhase = 'connecting' | 'creating' | 'lobby' | 'intro';
 
 interface Options {
-  // Called once mission control starts the game, to navigate to the live dashboard
+  // Called once the post-game-start intro sequence finishes (last slide's
+  // timer ran out, or mission control skipped it), to navigate to the live
+  // dashboard.
   onGameStart?: () => void;
 }
 
@@ -47,7 +49,7 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
 
       if (started && !startedRef.current) {
         startedRef.current = true;
-        onGameStartRef.current?.();
+        setPhase('intro');
       }
       if (!started) {
         startedRef.current = false;
@@ -55,7 +57,6 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
     }
 
     if (lastMessage.type === 'reconnect_ack' && lastMessage.role === 'parent') {
-      setPhase('lobby');
       setPlayers(lastMessage.state.players);
       const started = lastMessage.state.status !== 'lobby';
       setIsRunning(started);
@@ -65,10 +66,10 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
       // keeps this from firing onGameStart a second time for one transition.
       if (started && !startedRef.current) {
         startedRef.current = true;
-        onGameStartRef.current?.();
-      }
-      if (!started) {
+        setPhase('intro');
+      } else if (!started) {
         startedRef.current = false;
+        setPhase('lobby');
       }
     }
     if (lastMessage.type === 'reconnect_error') {
@@ -96,6 +97,10 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
     socket?.send({ type: 'start_game' });
   }
 
+  function finishIntro() {
+    onGameStartRef.current?.();
+  }
+
   return {
     phase,
     code,
@@ -103,6 +108,7 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
     isConnected,
     isRunning,
     startGame,
+    finishIntro,
     canStart: phase === 'lobby' && players.length > 0,
   };
 }
