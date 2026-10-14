@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { scale } from 'react-native-size-matters';
+import { scale } from '../../src/lib/scale';
 import { colors } from '../../src/theme/tokens';
 
 interface Props {

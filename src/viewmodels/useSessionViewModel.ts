@@ -8,11 +8,19 @@ import { useEffect, useRef, useState } from 'react';
 import { useGameSocket } from '../lib/useGameSocket';
 import type { Player } from '../lib/protocol';
 
-export type SessionPhase = 'entering' | 'joining' | 'selecting' | 'waiting' | 'error';
+export type SessionPhase =
+  | 'entering'
+  | 'joining'
+  | 'selecting'
+  | 'waiting'
+  | 'intro'
+  | 'standby'
+  | 'error';
 
 interface Options {
-  // Called once mission control starts the game, so the screen can navigate
-  // on to character select / the assigned minigame.
+  // Called once the post-game-start intro sequence finishes (last slide's
+  // timer ran out, or the player skipped it), so the screen can navigate on
+  // to the assigned minigame.
   onGameStart?: () => void;
 }
 
@@ -54,7 +62,7 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
       const started = lastMessage.state.status !== 'lobby';
       if (started && !startedRef.current) {
         startedRef.current = true;
-        onGameStartRef.current?.();
+        setPhase('intro');
       } else if (!started) {
         startedRef.current = false;
         // Reconnecting mid-selection shouldn't force a re-pick — resume
@@ -77,7 +85,7 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
       const started = lastMessage.state.status !== 'lobby';
       if (started && !startedRef.current) {
         startedRef.current = true;
-        onGameStartRef.current?.();
+        setPhase('intro');
       } else if (!started) {
         startedRef.current = false;
         setPlayers(lastMessage.state.players);
@@ -103,6 +111,11 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     setPhase('waiting');
   }
 
+  function finishIntro() {
+    setPhase('standby');
+    onGameStartRef.current?.();
+  }
+
   return {
     code,
     setCode,
@@ -116,5 +129,6 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     canJoin: isConnected && code.length === 4 && !!name.trim(),
     selectedCharacterId,
     selectCharacter,
+    finishIntro,
   };
 }

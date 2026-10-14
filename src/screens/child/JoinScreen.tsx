@@ -12,6 +12,8 @@ import { CodeInput } from '../../components/CodeInput';
 import { PrimaryButton } from '../../components/PrimaryButton';
 import { CharacterCard } from '../../components/CharacterCard';
 import { CHARACTERS } from '../../lib/characters';
+import { IntroScreen } from '../IntroScreen';
+import { StandbyScreen } from './StandbyScreen';
 import { colors, spacing, radii, inkShadow } from '../../theme/tokens';
 
 interface Props {
@@ -33,18 +35,21 @@ export function JoinScreen({ onGameStart }: Props) {
     canJoin,
     selectedCharacterId,
     selectCharacter,
+    finishIntro,
   } = useSessionViewModel({ onGameStart });
 
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Text style={styles.wordmark}>Gothem Cité</Text>
-      <Text style={styles.tagline}>
-        {phase === 'selecting'
-          ? 'Pick your hero'
-          : phase === 'waiting'
-            ? 'Standing by for the signal'
-            : 'Answer the call. Save the city.'}
-      </Text>
+      {phase !== 'intro' && phase !== 'standby' && (
+        <Text style={styles.tagline}>
+          {phase === 'selecting'
+            ? 'Pick your hero'
+            : phase === 'waiting'
+              ? 'Standing by for the signal'
+              : 'Answer the call. Save the city.'}
+        </Text>
+      )}
 
       {(phase === 'entering' || phase === 'joining' || phase === 'error') && (
         <View style={styles.form}>
@@ -90,6 +95,10 @@ export function JoinScreen({ onGameStart }: Props) {
           </View>
         </View>
       )}
+
+      {phase === 'intro' && <IntroScreen players={players} onFinish={finishIntro} />}
+
+      {phase === 'standby' && <StandbyScreen selectedCharacterId={selectedCharacterId} />}
 
       {phase === 'waiting' && (
         <View style={styles.form}>
