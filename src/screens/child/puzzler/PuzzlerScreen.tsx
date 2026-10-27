@@ -2,6 +2,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { usePuzzlerViewModel } from '../../../viewmodels/usePuzzlerViewModel';
 import { WORD_LENGTH, MAX_GUESSES, type LetterValue } from './logic';
 import { colors, spacing, radii } from '../../../theme/tokens';
+import { PrimaryButton } from '../../../components/PrimaryButton';
 
 
 const RESULT_COLORS: Record<LetterValue, string> = {
@@ -64,9 +65,11 @@ function Key({ label, result, onPress }: { label: string; result?: LetterValue; 
 interface Props {
   // Called once when the game ends
   onFinish?: (success: boolean) => void;
+  // Called when the player dismisses the result screen
+  onContinue?: () => void;
 }
 
-export function PuzzlerScreen({ onFinish }: Props) {
+export function PuzzlerScreen({ onFinish, onContinue }: Props) {
   const {
     answer,
     guesses,
@@ -113,15 +116,23 @@ export function PuzzlerScreen({ onFinish }: Props) {
         {status === 'lost' && <Text style={styles.lose}>BOOM! The code was {answer}</Text>}
       </View>
 
-      <View style={styles.keyboard}>
-        {KEYBOARD_ROWS.map((keys, r) => (
-          <View key={r} style={styles.keyRow}>
-            {keys.map((key) => (
-              <Key key={key} label={key} result={keyboardColors[key]} onPress={() => handleKey(key)} />
-            ))}
+      {status === 'playing' ? (
+        <View style={styles.keyboard}>
+          {KEYBOARD_ROWS.map((keys, r) => (
+            <View key={r} style={styles.keyRow}>
+              {keys.map((key) => (
+                <Key key={key} label={key} result={keyboardColors[key]} onPress={() => handleKey(key)} />
+              ))}
+            </View>
+          ))}
+        </View>
+      ) : (
+        onContinue && (
+          <View style={styles.ctaRow}>
+            <PrimaryButton label="Continue" onPress={onContinue} />
           </View>
-        ))}
-      </View>
+        )
+      )}
     </View>
   );
 }
@@ -200,6 +211,9 @@ const styles = StyleSheet.create({
   keyboard: {
     width: '100%',
     maxWidth: 500,
+  },
+  ctaRow: {
+    marginTop: spacing.md,
   },
   keyRow: {
     flexDirection: 'row',

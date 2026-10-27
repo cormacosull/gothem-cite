@@ -260,20 +260,18 @@ reports success/failure is enough at this stage).
         instant loss. Same split as Puzzler: `src/screens/child/chase/logic.ts` (pure, no
         React/sockets — obstacle spawn/advance/collision), `useChaseMissionViewModel.ts` (game
         loop + both input methods), `ChaseScreen.tsx` (render only). Placeholder art
-        throughout — colored rectangles, no sprites (Phase 4). This is also the **first
-        minigame that actually closes the server loop**: it sends real `mission_result`, unlike
-        Puzzler (still a route-level TODO there).
+        throughout — colored rectangles, no sprites (Phase 4).
       - [x] **Mission dispatch** (didn't exist before this — the TODO in `app/child/index.tsx`
         named a future `/child/mission` route, nothing implemented it). Built it *without* a
         separate route: `useSessionViewModel` now tracks `mission: Mission | null` (set on
         `assign_mission`) and exposes `reportMissionResult()`/`returnToStandby()`, all still
         going through the *same* socket connection the whole session already uses — avoids the
         same multi-socket problem flagged for `useParentSessionViewModel` earlier. `JoinScreen`
-        renders `ChaseScreen` inline when `mission?.type === 'chase'`, else falls back to
-        `StandbyScreen` (fire/bomb intentionally untouched — still park there, same as before).
-        The minigame screen doesn't disappear the instant `mission_result` is sent — it shows
-        its own win/lose state with a "Continue" button that's what actually returns to
-        standby, so the player sees the outcome instead of the screen vanishing mid-result.
+        renders `ChaseScreen` for Chase and `PuzzlerScreen` for Bomb; Fire remains on
+        `StandbyScreen`. The minigame screen doesn't disappear the instant `mission_result` is
+        sent — it shows its own win/lose state with a "Continue" button that's what actually
+        returns to standby, so the player sees the outcome instead of the screen vanishing
+        mid-result.
       - **Found & fixed live, not caused by this feature but blocking it**: `react-native-web`'s
         `Dimensions` has a one-shot caching bug (first-ever `.get('window')` call in the whole
         app freezes the result until an actual browser resize) that was already silently
@@ -308,6 +306,10 @@ reports success/failure is enough at this stage).
         clear one away on its own — only `returnToStandby()` (the player's own "Continue" tap)
         does that now. Verified live: the "Busted!"/"Continue" screen now correctly stays up
         until dismissed, and the dashboard still updates correctly either way.
+      - [x] **Bomb mission dispatch**: `JoinScreen` renders `PuzzlerScreen` for `bomb`
+        assignments and reports its win/loss through the session view model. The result remains
+        visible until Continue returns the player to standby; `fire` assignments still show
+        the standby placeholder.
 - [ ] Parent: live dashboard screen — City Integrity meter, active emergencies with
       countdowns, per-hero status (replacing the current static placeholder), driven by a
       `useDashboardViewModel()` — **in progress, still unchecked.** `app/parent/dashboard.tsx`

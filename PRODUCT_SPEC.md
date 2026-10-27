@@ -87,10 +87,10 @@ no illustration/pixel art yet) unless marked "not yet implemented."
 | Lobby / waiting room | Roster of joined heroes, waiting for host to start | Implemented (as part of Join screen) |
 | Character select | Pick a hero identity | Implemented (placeholder art — 4 colored rectangles, no real hero identities yet) |
 | Intro/lore | Scenario, villains, the team, the City Integrity meter, and the mission types — auto-advancing slides, skippable | Implemented (placeholder art — rectangle per slide, real illustrations pending Phase 4) |
-| Standby | Holding screen after the intro, before a mission is assigned — "you'll be called into action" | Implemented (placeholder; nothing yet moves a hero out of it once `assign_mission` actually arrives) |
+| Standby | Holding screen after the intro, before a supported mission is available | Implemented (placeholder for Fire assignments) |
 | Minigame: Fire | Put out fires (The Jester) | Not yet implemented |
 | Minigame: Chase | Police chase (The Pidgeon) — 3-lane dodger, swipe or tilt, survive the timer | Implemented (placeholder art — colored rectangles, real sprites pending Phase 4) |
-| Minigame: Bomb | Bomb defusal puzzle (The Puzzler) | Not yet implemented |
+| Minigame: Bomb | Bomb defusal puzzle (The Puzzler) | Implemented; dispatched to players assigned a bomb mission |
 | Mission result screen | Confirms success/failure, waits for next assignment | Not yet implemented |
 
 ## 5. Design Direction (deferred to final phase)
