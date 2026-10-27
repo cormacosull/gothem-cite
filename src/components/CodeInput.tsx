@@ -47,7 +47,6 @@ export function CodeInput({ value, onChange, editable = true }: Props) {
           keyboardType="number-pad"
           maxLength={1}
           editable={editable}
-          textAlign="center"
         />
       ))}
     </View>
@@ -58,6 +57,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: "center",
     gap: spacing.sm,
   },
   box: {
@@ -67,6 +67,8 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: colors.inkLine,
     borderRadius: radii.md,
+    textAlign: 'center',
+    textAlignVertical: 'center',
     fontSize: 28,
     fontFamily: 'Nunito_800ExtraBold',
     color: colors.inkLine,
