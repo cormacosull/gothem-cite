@@ -15,6 +15,7 @@ import { CHARACTERS } from '../../lib/characters';
 import { IntroScreen } from '../IntroScreen';
 import { StandbyScreen } from './StandbyScreen';
 import { ChaseScreen } from './chase/ChaseScreen';
+import { FireScreen } from './fire/FireScreen';
 import { PuzzlerScreen } from './puzzler/PuzzlerScreen';
 import { colors, spacing, radii, inkShadow } from '../../theme/tokens';
 
@@ -107,11 +108,15 @@ export function JoinScreen({ onGameStart }: Props) {
         <ChaseScreen onFinish={reportMissionResult} onContinue={returnToStandby} />
       )}
 
+      {phase === 'standby' && mission?.type === 'fire' && (
+        <FireScreen onFinish={reportMissionResult} onContinue={returnToStandby} />
+      )}
+
       {phase === 'standby' && mission?.type === 'bomb' && (
         <PuzzlerScreen onFinish={reportMissionResult} onContinue={returnToStandby} />
       )}
 
-      {phase === 'standby' && mission?.type !== 'chase' && mission?.type !== 'bomb' && (
+      {phase === 'standby' && !mission && (
         <StandbyScreen selectedCharacterId={selectedCharacterId} />
       )}
 
