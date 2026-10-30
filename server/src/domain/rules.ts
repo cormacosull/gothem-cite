@@ -13,7 +13,7 @@ export const MISSION_SUCCESS_RESTORE = 15;
 export const MISSION_FAIL_PENALTY = 10;
 export const MAX_PLAYERS = 3;
 
-const MISSION_TYPES: MissionType[] = [/*'fire',*/ 'chase', 'bomb'];
+const MISSION_TYPES: MissionType[] = ['fire', 'chase', 'bomb'];
 
 export function missionTypeForIndex(index: number): MissionType {
   return MISSION_TYPES[index % MISSION_TYPES.length];

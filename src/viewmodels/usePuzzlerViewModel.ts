@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   WORD_LENGTH,
   pickRandomAnswer,
@@ -17,6 +17,7 @@ interface Options {
 export function usePuzzlerViewModel({ onFinish }: Options = {}) {
   // Passing the function (not calling it) so the word is picked only once per game
   const [answer] = useState(pickRandomAnswer);
+  const reportedResultRef = useRef(false);
   const [guesses, setGuesses] = useState<Guess[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
   const [errorText, setErrorText] = useState('');
@@ -56,7 +57,10 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
     setCurrentGuess('');
 
     const newStatus = getGameStatus(newGuesses);
-    if (newStatus !== 'playing') onFinish?.(newStatus === 'won');
+    if (newStatus !== 'playing' && !reportedResultRef.current) {
+      reportedResultRef.current = true;
+      onFinish?.(newStatus === 'won');
+    }
   }
 
   return {
