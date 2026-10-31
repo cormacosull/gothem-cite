@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, PanResponder } from 'react-native';
 import { useChaseMissionViewModel } from '../../../viewmodels/useChaseMissionViewModel';
 import { PrimaryButton } from '../../../components/PrimaryButton';
@@ -19,12 +19,20 @@ export function ChaseScreen({ onFinish, onContinue }: Props) {
   const { laneCount, playerLane, obstacles, elapsedMs, survivalMs, status, moveLeft, moveRight } =
     useChaseMissionViewModel({ onFinish });
 
+  // PanResponder is created once and reads the latest handlers through refs
+  const moveLeftRef = useRef(moveLeft);
+  const moveRightRef = useRef(moveRight);
+  useEffect(() => {
+    moveLeftRef.current = moveLeft;
+    moveRightRef.current = moveRight;
+  });
+
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderRelease: (_evt, gesture) => {
-        if (gesture.dx > SWIPE_THRESHOLD) moveRight();
-        else if (gesture.dx < -SWIPE_THRESHOLD) moveLeft();
+        if (gesture.dx > SWIPE_THRESHOLD) moveRightRef.current();
+        else if (gesture.dx < -SWIPE_THRESHOLD) moveLeftRef.current();
       },
     })
   ).current;
