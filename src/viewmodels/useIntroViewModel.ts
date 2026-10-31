@@ -1,8 +1,8 @@
 // ViewModel for the post-character-select intro sequence: a handful of
 // lore slides (the villains, the team, the city meter, the mission types)
-// that auto-advance and can be skipped. Owns the slide index and the
-// advance timer; the View (IntroScreen) just renders whatever slide this
-// returns and calls `skip()` on user input.
+// that auto-advance, with the option to go back and forward, and can be skipped. 
+// Owns the slide index and the advance timer; the View (IntroScreen) just 
+// renders whatever slide this returns and calls `skip()` on user input.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Player } from '../lib/protocol';
@@ -88,10 +88,22 @@ export function useIntroViewModel({ players, onFinish }: Options) {
     return () => clearTimeout(timer);
   }, [index, slides.length]);
 
+  function next() {
+    if (index < slides.length - 1) setIndex((i) => i + 1);
+  }
+
+  function back() {
+    if (index > 0) setIndex((i) => i - 1);
+  }
+
   return {
     slide: slides[index],
     index,
     total: slides.length,
+    isFirst: index === 0,
+    isLast: index === slides.length - 1,
+    next,
+    back,
     skip: finish,
   };
 }
