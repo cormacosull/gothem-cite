@@ -13,6 +13,12 @@ function adoptMissionIfFound(current: Mission | null, missions: Mission[], playe
   return current?.id === found.id ? current : found;
 }
 
+function findTakenCharacterIds(players: Player[], playerId: string | null): string[] {
+  return players
+    .filter((p) => p.id !== playerId && p.character)
+    .map((p) => p.character!);
+}
+
 export type SessionPhase =
   | 'entering'
   | 'joining'
@@ -122,6 +128,7 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
   }
 
   function selectCharacter(characterId: string) {
+    if (findTakenCharacterIds(players, playerIdRef.current).includes(characterId)) return;
     setSelectedCharacterId(characterId);
     socket?.send({ type: 'select_character', characterId });
     setPhase('waiting');
@@ -153,6 +160,7 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     join,
     canJoin: isConnected && code.length === 4 && !!name.trim(),
     selectedCharacterId,
+    takenCharacterIds: findTakenCharacterIds(players, playerIdRef.current),
     selectCharacter,
     finishIntro,
     mission,

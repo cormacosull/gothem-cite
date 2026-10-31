@@ -37,6 +37,7 @@ export function JoinScreen({ onGameStart }: Props) {
     join,
     canJoin,
     selectedCharacterId,
+    takenCharacterIds,
     selectCharacter,
     finishIntro,
     mission,
@@ -95,6 +96,7 @@ export function JoinScreen({ onGameStart }: Props) {
                 key={c.id}
                 character={c}
                 selected={c.id === selectedCharacterId}
+                disabled={takenCharacterIds.includes(c.id)}
                 onPress={() => selectCharacter(c.id)}
               />
             ))}
