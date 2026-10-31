@@ -84,6 +84,10 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
         const missions = lastMessage.state.missions;
         setMission((current) => adoptMissionIfFound(current, missions, playerIdRef.current));
       }
+      // Starting the game should skip the intro in all devices
+      if (lastMessage.state.status === 'playing') {
+        setPhase((current) => (current === 'intro' ? 'standby' : current));
+      }
     }
     if (lastMessage.type === 'reconnect_error') {
       playerIdRef.current = null;
@@ -105,6 +109,10 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
       if (started) {
         const missions = lastMessage.state.missions;
         setMission((current) => adoptMissionIfFound(current, missions, playerIdRef.current));
+      }
+      // Starting the game should skip the intro in all devices
+      if (lastMessage.state.status === 'playing') {
+        setPhase((current) => (current === 'intro' ? 'standby' : current));
       }
     }
   }, [lastMessage]);
