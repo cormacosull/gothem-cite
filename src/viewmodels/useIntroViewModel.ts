@@ -40,12 +40,12 @@ function buildSlides(players: Player[]): IntroSlideContent[] {
     {
       key: 'city-meter',
       heading: 'Keep Gothem Standing',
-      body: "Every attack chips away at the city's strength. Watch the City Integrity meter on mission control's screen — it drains over time, drops further if a mission fails, and climbs back up every time your team succeeds.\n\nIf it hits zero before the crooks are stopped, Gothem falls.",
+      body: "Every mission counts. The City Integrity meter on mission control's screen climbs every time a hero succeeds and drops every time one fails.\n\nFinish with at least 75% to save Gothem. If the city can't get there anymore, Gothem falls.",
     },
     {
       key: 'threats',
       heading: 'Your Mission, Should You Accept It',
-      body: "When an alarm goes off, you'll be dispatched to handle one of three kinds of trouble:\n\n🔥 Fire — put it out before it spreads\n🚓 Chase — catch the one who's running\n💣 Bomb — defuse it before time runs out\n\nSolve yours fast — the whole team is counting on it.",
+      body: "Each of you will take on all three kinds of trouble, one after the other:\n\n🔥 Fire — put it out before it spreads\n🚓 Chase — catch the one who's running\n💣 Bomb — defuse it before time runs out\n\nThe whole team is counting on you.",
     },
   ];
 }
