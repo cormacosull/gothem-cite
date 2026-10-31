@@ -13,6 +13,7 @@ import {
   clampLane,
   type Lane,
   type Obstacle,
+  type ChaseStatus,
 } from '../screens/child/chase/logic';
 
 // Tilt is iOS/Android only (expo-sensors' Accelerometer has no web)
@@ -29,8 +30,10 @@ export function useChaseMissionViewModel({ onFinish }: Options = {}) {
   const [obstacles, setObstacles] = useState<Obstacle[]>([]);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [collided, setCollided] = useState(false);
+  const [started, setStarted] = useState(false);
 
-  const status = getStatus(elapsedMs, collided);
+  // 'ready' until START is pressed on the popup, like the fire game
+  const status: ChaseStatus = started ? getStatus(elapsedMs, collided) : 'ready';
 
   const onFinishRef = useRef(onFinish);
   useEffect(() => {
@@ -39,7 +42,7 @@ export function useChaseMissionViewModel({ onFinish }: Options = {}) {
 
   const finishedRef = useRef(false);
   useEffect(() => {
-    if (status !== 'playing' && !finishedRef.current) {
+    if ((status === 'won' || status === 'lost') && !finishedRef.current) {
       finishedRef.current = true;
       onFinishRef.current?.(status === 'won');
     }
@@ -68,6 +71,17 @@ export function useChaseMissionViewModel({ onFinish }: Options = {}) {
       setCollided(true);
     }
   }, [obstacles, playerLane, status]);
+
+  /** Starts the chase, or restarts it after a win or a loss. */
+  function start() {
+    if (status === 'playing') return;
+    finishedRef.current = false;
+    setPlayerLane(1);
+    setObstacles([]);
+    setElapsedMs(0);
+    setCollided(false);
+    setStarted(true);
+  }
 
   function moveLeft() {
     if (status !== 'playing') return;
@@ -107,6 +121,7 @@ export function useChaseMissionViewModel({ onFinish }: Options = {}) {
     elapsedMs,
     survivalMs: SURVIVAL_MS,
     status,
+    start,
     moveLeft,
     moveRight,
   };

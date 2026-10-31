@@ -5,10 +5,7 @@ import { colors, spacing } from '../../src/theme/tokens';
 export default function ChaseRoute() {
   return (
     <View style={styles.screen}>
-      <ChaseScreen
-        onFinish={(success) => console.log('Chase finished, success =', success)}
-        onContinue={() => console.log('Chase continue pressed')}
-      />
+      <ChaseScreen />
     </View>
   );
 }

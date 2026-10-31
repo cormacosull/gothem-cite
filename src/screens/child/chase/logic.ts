@@ -13,7 +13,7 @@ export interface Obstacle {
   progress: number; // 0 = just spawned x 1 = reached the player
 }
 
-export type ChaseStatus = 'playing' | 'won' | 'lost';
+export type ChaseStatus = 'ready' | 'playing' | 'won' | 'lost';
 
 function randomId(): string {
   return Math.random().toString(36).slice(2, 9);

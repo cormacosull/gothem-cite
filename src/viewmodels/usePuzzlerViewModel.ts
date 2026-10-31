@@ -7,6 +7,7 @@ import {
   getGameStatus,
   getKeyboardColors,
   type Guess,
+  type GameStatus,
 } from '../screens/child/puzzler/logic';
 
 interface Options {
@@ -16,15 +17,27 @@ interface Options {
 
 export function usePuzzlerViewModel({ onFinish }: Options = {}) {
   // Passing the function (not calling it) so the word is picked only once per game
-  const [answer] = useState(pickRandomAnswer);
+  const [answer, setAnswer] = useState(pickRandomAnswer);
   const reportedResultRef = useRef(false);
   const [guesses, setGuesses] = useState<Guess[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
   const [errorText, setErrorText] = useState('');
+  const [started, setStarted] = useState(false);
 
-  // Derived from guesses, so they're never out of sync
-  const status = getGameStatus(guesses);
+  // Derived from guesses, so they're never out of sync. 'ready' until START is pressed
+  const status: GameStatus = started ? getGameStatus(guesses) : 'ready';
   const keyboardColors = getKeyboardColors(guesses);
+
+  // Starts the game, or restarts it with a new word after a win or a loss
+  function start() {
+    if (status === 'playing') return;
+    if (status !== 'ready') setAnswer(pickRandomAnswer());
+    reportedResultRef.current = false;
+    setGuesses([]);
+    setCurrentGuess('');
+    setErrorText('');
+    setStarted(true);
+  }
 
   // Adds a letter to the current guess if the game is still playing and the guess isn't full
   function addLetter(letter: string) {
@@ -70,6 +83,7 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
     status,
     errorText,
     keyboardColors,
+    start,
     addLetter,
     deleteLetter,
     submitGuess,
