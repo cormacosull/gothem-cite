@@ -1,9 +1,10 @@
-import { View, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useIntroViewModel } from '../viewmodels/useIntroViewModel';
 import { IntroSlide } from '../components/IntroSlide';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { colors, spacing } from '../theme/tokens';
 import type { Player } from '../lib/protocol';
+import { scale } from '../lib/scale';
 
 interface Props {
   players: Player[];
@@ -14,7 +15,7 @@ interface Props {
 }
 
 export function IntroScreen({ players, onFinish }: Props) {
-  const { slide, index, total, skip } = useIntroViewModel({ players, onFinish });
+  const { slide, index, total, isFirst, isLast, next, back, skip } = useIntroViewModel({ players, onFinish });
 
   return (
     <View style={styles.container}>
@@ -26,9 +27,14 @@ export function IntroScreen({ players, onFinish }: Props) {
         ))}
       </View>
 
-      <View style={styles.skipRow}>
-        <PrimaryButton label="Skip" onPress={skip} />
+      <View style={styles.buttonRow}>
+        {!isFirst && <PrimaryButton label="Back" onPress={back} />}
+        {!isLast && <PrimaryButton label="Next" onPress={next} />}
       </View>
+
+      <Pressable style={styles.skipButton} onPress={skip}>
+        <Text style={styles.skipButtonText}>Skip briefing</Text>
+      </Pressable>
     </View>
   );
 }
@@ -55,7 +61,20 @@ const styles = StyleSheet.create({
   dotActive: {
     backgroundColor: colors.signal,
   },
-  skipRow: {
+  buttonRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
     marginTop: spacing.lg,
+  },
+  skipButton: {
+    minHeight: scale(44),
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: scale(8),
+  },
+  skipButtonText: {
+    color: colors.textMuted,
+    fontSize: scale(14),
+    fontWeight: '700',
   },
 });

@@ -6,6 +6,7 @@ import { IntroScreen } from '../../src/screens/IntroScreen';
 import ParentDashboard from './dashboard';
 import TutorialDemo from '../../app/parent/TutorialScreen';
 import { colors, spacing } from '../../src/theme/tokens';
+import ResultScreen from '../../src/screens/parent/ResultScreen';
 
 
 export default function ParentDashboardRoute() {
@@ -38,12 +39,12 @@ switch (state.status) {
       return <TutorialDemo onFinished={completeTutorial} onSkip={completeTutorial} />;
     case 'playing':
       return <ParentDashboard state={state} />;
+        case 'won':
+    case 'lost':
+      return <ResultScreen state={state} />;
     default:
       console.log("other screen: ", state.status)
       return;
-    // case 'won':
-    // case 'lost':
-    //   return <ResultScreen result={state.status} />;
   }
 }
 

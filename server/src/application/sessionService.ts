@@ -11,9 +11,8 @@ import type { GameState, Player, Mission, ServerMessage } from '../protocol';
 import {
   STARTING_CITY_HEALTH,
   MAX_PLAYERS,
-  TICK_MS,
+  MISSIONS_PER_PLAYER,
   missionTypeForIndex,
-  drainHealth,
   applyMissionResult,
   evaluateOutcome,
   generateSessionCode,
@@ -25,7 +24,6 @@ interface Session {
   state: GameState;
   parent: WebSocket | null;
   children: Map<string, WebSocket>; // playerId -> socket
-  tickHandle: ReturnType<typeof setInterval> | null;
 }
 
 const sessions = new Map<string, Session>();
@@ -40,6 +38,11 @@ function broadcastState(session: Session) {
   for (const child of session.children.values()) send(child, message);
 }
 
+// Every player plays every mission once
+function totalMissions(session: Session): number {
+  return session.state.players.length * MISSIONS_PER_PLAYER;
+}
+
 export function createSession(parentSocket: WebSocket): GameState {
   const code = generateSessionCode((c) => sessions.has(c));
   const state: GameState = {
@@ -49,7 +52,7 @@ export function createSession(parentSocket: WebSocket): GameState {
     players: [],
     missions: [],
   };
-  sessions.set(code, { state, parent: parentSocket, children: new Map(), tickHandle: null });
+  sessions.set(code, { state, parent: parentSocket, children: new Map() });
   return state;
 }
 
@@ -111,33 +114,32 @@ export function completeTutorial(code: string, socket: WebSocket): { error: stri
   assignMissions(session);
   broadcastState(session);
 
-  // Referee tick: city health drains over time until missions restore it.
-  session.tickHandle = setInterval(() => {
-    session.state.cityHealth = drainHealth(session.state.cityHealth);
-    if (session.state.cityHealth <= 0) {
-      endGame(session, 'lost');
-      return;
-    }
-    broadcastState(session);
-  }, TICK_MS);
-
   return { ok: true };
 }
 
 function assignMissions(session: Session) {
-  session.state.missions = session.state.players.map((player, i) => {
-    const type = missionTypeForIndex(i);
-    player.mission = type;
-    const mission: Mission = {
-      id: generateMissionId(),
-      type,
-      playerId: player.id,
-      status: 'active',
-    };
-    const socket = session.children.get(player.id);
-    if (socket) send(socket, { type: 'assign_mission', mission });
-    return mission;
-  });
+  session.state.missions = [];
+  for (const player of session.state.players) assignNextMission(session, player);
+}
+
+// Each player goes through every mission once, starting on a different
+// one so the whole team isn't on the same game at the same time
+function assignNextMission(session: Session, player: Player) {
+  const playerIndex = session.state.players.indexOf(player);
+  const played = session.state.missions.filter((m) => m.playerId === player.id).length;
+  if (played >= MISSIONS_PER_PLAYER) return;
+
+  const type = missionTypeForIndex(playerIndex + played);
+  player.mission = type;
+  const mission: Mission = {
+    id: generateMissionId(),
+    type,
+    playerId: player.id,
+    status: 'active',
+  };
+  session.state.missions.push(mission);
+  const socket = session.children.get(player.id);
+  if (socket) send(socket, { type: 'assign_mission', mission });
 }
 
 export function reportMissionResult(code: string, missionId: string, success: boolean) {
@@ -148,20 +150,24 @@ export function reportMissionResult(code: string, missionId: string, success: bo
   if (!mission || mission.status !== 'active') return;
 
   mission.status = success ? 'success' : 'failed';
-  session.state.cityHealth = applyMissionResult(session.state.cityHealth, success);
+  const total = totalMissions(session);
+  session.state.cityHealth = applyMissionResult(session.state.cityHealth, success, total);
 
-  const outcome = evaluateOutcome(session.state.missions, session.state.cityHealth);
+  const outcome = evaluateOutcome(session.state.missions, session.state.cityHealth, total);
   if (outcome) {
     endGame(session, outcome);
     return;
   }
+
+  const player = session.state.players.find((p) => p.id === mission.playerId);
+  if (player) assignNextMission(session, player);
 
   broadcastState(session);
 }
 
 function endGame(session: Session, result: 'won' | 'lost') {
   session.state.status = result;
-  if (session.tickHandle) clearInterval(session.tickHandle);
+  broadcastState(session);
   const message: ServerMessage = { type: 'game_over', result };
   if (session.parent) send(session.parent, message);
   for (const child of session.children.values()) send(child, message);

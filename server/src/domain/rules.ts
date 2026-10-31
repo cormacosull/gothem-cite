@@ -6,11 +6,9 @@
 
 import type { Mission, MissionType } from '../protocol';
 
-export const STARTING_CITY_HEALTH = 100;
-export const HEALTH_DRAIN_PER_TICK = 2;
-export const TICK_MS = 5000;
-export const MISSION_SUCCESS_RESTORE = 15;
-export const MISSION_FAIL_PENALTY = 10;
+export const STARTING_CITY_HEALTH = 50;
+export const WIN_CITY_HEALTH = 75;
+export const MISSIONS_PER_PLAYER = 3;
 export const MAX_PLAYERS = 3;
 
 const MISSION_TYPES: MissionType[] = ['fire', 'chase', 'bomb'];
@@ -19,22 +17,31 @@ export function missionTypeForIndex(index: number): MissionType {
   return MISSION_TYPES[index % MISSION_TYPES.length];
 }
 
-export function drainHealth(current: number): number {
-  return Math.max(0, current - HEALTH_DRAIN_PER_TICK);
+// Every game moves the city by the same amount
+// The final health is the % of games won
+export function healthStep(totalMissions: number): number {
+  return (100 - STARTING_CITY_HEALTH) / totalMissions;
 }
 
-export function applyMissionResult(current: number, success: boolean): number {
-  const delta = success ? MISSION_SUCCESS_RESTORE : -MISSION_FAIL_PENALTY;
+export function applyMissionResult(current: number, success: boolean, totalMissions: number): number {
+  const delta = success ? healthStep(totalMissions) : -healthStep(totalMissions);
   return Math.min(100, Math.max(0, current + delta));
 }
 
-// Returns the game's outcome once every mission has been resolved, or null
-// while missions are still active.
-export function evaluateOutcome(missions: Mission[], cityHealth: number): 'won' | 'lost' | null {
-  const stillActive = missions.some((m) => m.status === 'active');
-  if (stillActive) return null;
-  const allSucceeded = missions.every((m) => m.status === 'success');
-  return allSucceeded && cityHealth > 0 ? 'won' : 'lost';
+// Returns the game's outcome or null while it can still be won. 
+// Lost as soon as WIN_CITY_HEALTH is out of reach even if every remaining game is won
+// Won once every game has been played (health is then above it).
+export function evaluateOutcome(
+  missions: Mission[],
+  cityHealth: number,
+  totalMissions: number
+): 'won' | 'lost' | null {
+  const played = missions.filter((m) => m.status !== 'active').length;
+  const remaining = totalMissions - played;
+  const bestPossible = cityHealth + remaining * healthStep(totalMissions);
+  if (bestPossible < WIN_CITY_HEALTH) return 'lost';
+  if (remaining === 0) return 'won';
+  return null;
 }
 
 export function generateSessionCode(isTaken: (code: string) => boolean): string {
