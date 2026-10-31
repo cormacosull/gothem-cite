@@ -167,6 +167,7 @@ export function reportMissionResult(code: string, missionId: string, success: bo
 
 function endGame(session: Session, result: 'won' | 'lost') {
   session.state.status = result;
+  broadcastState(session);
   const message: ServerMessage = { type: 'game_over', result };
   if (session.parent) send(session.parent, message);
   for (const child of session.children.values()) send(child, message);
