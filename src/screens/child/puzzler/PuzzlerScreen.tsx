@@ -2,7 +2,6 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { usePuzzlerViewModel } from '../../../viewmodels/usePuzzlerViewModel';
 import { WORD_LENGTH, MAX_GUESSES, type LetterValue } from './logic';
 import { colors, spacing, radii } from '../../../theme/tokens';
-import { PrimaryButton } from '../../../components/PrimaryButton';
 
 
 const RESULT_COLORS: Record<LetterValue, string> = {
@@ -19,6 +18,13 @@ const KEYBOARD_ROWS = [
   'ASDFGHJKL'.split(''),
   [ENTER, ...'ZXCVBNM'.split(''), DELETE],
 ];
+
+const OVERLAY_COPY = {
+  ready: { title: 'Bomb alert!', button: 'START' },
+  playing: { title: '', button: '' },
+  won: { title: 'Bomb defused!', button: 'PLAY AGAIN' },
+  lost: { title: 'BOOM!', button: 'TRY AGAIN' },
+} as const;
 
 // One square of the grid
 function Tile({ letter, result }: { letter?: string; result?: LetterValue }) {
@@ -69,7 +75,7 @@ interface Props {
   onContinue?: () => void;
 }
 
-export function PuzzlerScreen({ onFinish, onContinue }: Props) {
+export function PuzzlerScreen({ onFinish, onContinue }: Props = {}) {
   const {
     answer,
     guesses,
@@ -77,6 +83,7 @@ export function PuzzlerScreen({ onFinish, onContinue }: Props) {
     status,
     errorText,
     keyboardColors,
+    start,
     addLetter,
     deleteLetter,
     submitGuess,
@@ -112,26 +119,42 @@ export function PuzzlerScreen({ onFinish, onContinue }: Props) {
 
       <View style={styles.messageArea}>
         {errorText !== '' && <Text style={styles.error}>{errorText}</Text>}
-        {status === 'won' && <Text style={styles.win}>Bomb defused!</Text>}
-        {status === 'lost' && <Text style={styles.lose}>BOOM! The code was {answer}</Text>}
       </View>
 
-      {status === 'playing' ? (
-        <View style={styles.keyboard}>
-          {KEYBOARD_ROWS.map((keys, r) => (
-            <View key={r} style={styles.keyRow}>
-              {keys.map((key) => (
-                <Key key={key} label={key} result={keyboardColors[key]} onPress={() => handleKey(key)} />
-              ))}
-            </View>
-          ))}
-        </View>
-      ) : (
-        onContinue && (
-          <View style={styles.ctaRow}>
-            <PrimaryButton label="Continue" onPress={onContinue} />
+      <View style={styles.keyboard}>
+        {KEYBOARD_ROWS.map((keys, r) => (
+          <View key={r} style={styles.keyRow}>
+            {keys.map((key) => (
+              <Key key={key} label={key} result={keyboardColors[key]} onPress={() => handleKey(key)} />
+            ))}
           </View>
-        )
+        ))}
+      </View>
+
+      {/*overlays / modals*/}
+      {status !== 'playing' && (
+        <View style={styles.overlay}>
+          <View style={styles.overlayCard}>
+            <Text style={styles.overlayTitle}>{OVERLAY_COPY[status].title}</Text>
+            <Text style={styles.overlayBody}>
+              {status === 'ready' &&
+                `Crack the ${WORD_LENGTH}-letter code in ${MAX_GUESSES} tries to defuse the bomb.`}
+              {status === 'won' &&
+                `Victory, you cracked the code in ${guesses.length} tries!`}
+              {status === 'lost' &&
+                `The code was ${answer}.`}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={status === 'ready' || !onContinue ? start : onContinue}
+              style={({ pressed }) => [styles.overlayButton, pressed && styles.overlayButtonPressed]}
+            >
+              <Text style={styles.overlayButtonText}>
+                {status !== 'ready' && onContinue ? 'CONTINUE' : OVERLAY_COPY[status].button}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
       )}
     </View>
   );
@@ -198,22 +221,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.alarm,
   },
-  win: {
-    fontFamily: 'Nunito_800ExtraBold',
-    fontSize: 18,
-    color: colors.resolved,
-  },
-  lose: {
-    fontFamily: 'Nunito_800ExtraBold',
-    fontSize: 18,
-    color: colors.alarm,
-  },
   keyboard: {
     width: '100%',
     maxWidth: 500,
-  },
-  ctaRow: {
-    marginTop: spacing.md,
   },
   keyRow: {
     flexDirection: 'row',
@@ -244,5 +254,58 @@ const styles = StyleSheet.create({
   },
   keyTextSmall: {
     fontSize: 12,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(16, 14, 32, 0.55)',
+  },
+  overlayCard: {
+    maxWidth: '80%',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.md,
+    borderWidth: 3,
+    borderColor: colors.inkLine,
+    backgroundColor: colors.panel,
+    alignItems: 'center',
+  },
+  overlayTitle: {
+    fontFamily: 'Bangers_400Regular',
+    fontSize: 28,
+    letterSpacing: 1,
+    color: colors.signal,
+    textAlign: 'center',
+  },
+  overlayBody: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 14,
+    color: colors.textOnInk,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  overlayButton: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md * 2,
+    borderRadius: 100,
+    backgroundColor: colors.signal,
+    borderWidth: 3,
+    borderColor: colors.inkLine,
+  },
+  overlayButtonPressed: {
+    opacity: 0.8,
+  },
+  overlayButtonText: {
+    fontFamily: 'Bangers_400Regular',
+    fontSize: 18,
+    letterSpacing: 1,
+    color: colors.ink,
   },
 });

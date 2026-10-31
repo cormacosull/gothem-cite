@@ -11,7 +11,7 @@ export interface Guess {
   result: LetterValue[];
 }
 
-export type GameStatus = 'playing' | 'won' | 'lost';
+export type GameStatus = 'ready' | 'playing' | 'won' | 'lost';
 
 function normalize(word: string): string {
   return word.trim().toUpperCase();

@@ -1,22 +1,28 @@
 import { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, PanResponder } from 'react-native';
+import { View, Text, Pressable, StyleSheet, PanResponder } from 'react-native';
 import { useChaseMissionViewModel } from '../../../viewmodels/useChaseMissionViewModel';
-import { PrimaryButton } from '../../../components/PrimaryButton';
 import { colors, spacing, radii, inkShadow } from '../../../theme/tokens';
 
 const SWIPE_THRESHOLD = 40;
 const BOARD_HEIGHT = 420;
 
+const OVERLAY_COPY = {
+  ready: { title: 'Chase alert!', button: 'START' },
+  playing: { title: '', button: '' },
+  won: { title: 'BUSTED!', button: 'PLAY AGAIN' },
+  lost: { title: 'Crashed!', button: 'TRY AGAIN' },
+} as const;
+
 interface Props {
   // Called once the moment the game ends
-  onFinish: (success: boolean) => void;
+  onFinish?: (success: boolean) => void;
   // Called when the player taps the win/lose screen
-  onContinue: () => void;
+  onContinue?: () => void;
 }
 
 // Placeholder art throughout: plain colored rectangles
-export function ChaseScreen({ onFinish, onContinue }: Props) {
-  const { laneCount, playerLane, obstacles, elapsedMs, survivalMs, status, moveLeft, moveRight } =
+export function ChaseScreen({ onFinish, onContinue }: Props = {}) {
+  const { laneCount, playerLane, obstacles, elapsedMs, survivalMs, status, start, moveLeft, moveRight } =
     useChaseMissionViewModel({ onFinish });
 
   // PanResponder is created once and reads the latest handlers through refs
@@ -43,18 +49,12 @@ export function ChaseScreen({ onFinish, onContinue }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.wordmark}>The Pidgeon</Text>
-      <Text style={styles.tagline}>Shake the chase before time runs out</Text>
-
+      <Text style={styles.tagline}>Catch The Pidgeon before time runs out</Text>
+      
       <View style={styles.timerTrack}>
         <View style={[styles.timerFill, { width: `${progress * 100}%` }]} />
       </View>
-      <Text style={styles.hint}>
-        {status === 'playing'
-          ? `Hold out ${secondsLeft}s more`
-          : status === 'won'
-            ? 'You shook them off!'
-            : 'Busted!'}
-      </Text>
+      <Text style={styles.hint}>{`Hold out ${secondsLeft}s more`}</Text>
 
       <View style={styles.board} {...panResponder.panHandlers}>
         {Array.from({ length: laneCount }, (_, lane) => (
@@ -70,15 +70,35 @@ export function ChaseScreen({ onFinish, onContinue }: Props) {
             {lane === playerLane && <View style={styles.player} />}
           </View>
         ))}
+
+        {/*overlays / modals*/}
+        {status !== 'playing' && (
+          <View style={styles.overlay}>
+            <View style={styles.overlayCard}>
+              <Text style={styles.overlayTitle}>{OVERLAY_COPY[status].title}</Text>
+              <Text style={styles.overlayBody}>
+                {status === 'ready' &&
+                  `Dodge the traffic for ${Math.round(survivalMs / 1000)}s. Swipe left/right (or tilt your phone) to switch lanes.`}
+                {status === 'won' &&
+                  `Victory, you caught The Pidgeon!`}
+                {status === 'lost' &&
+                  `You crashed with ${secondsLeft}s left.`}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={status === 'ready' || !onContinue ? start : onContinue}
+                style={({ pressed }) => [styles.overlayButton, pressed && styles.overlayButtonPressed]}
+              >
+                <Text style={styles.overlayButtonText}>
+                  {status !== 'ready' && onContinue ? 'CONTINUE' : OVERLAY_COPY[status].button}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
       </View>
 
       <Text style={styles.controlHint}>Swipe left/right (or tilt your phone) to switch lanes</Text>
-
-      {status !== 'playing' && (
-        <View style={styles.ctaRow}>
-          <PrimaryButton label="Continue" onPress={onContinue} />
-        </View>
-      )}
     </View>
   );
 }
@@ -174,7 +194,57 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     textAlign: 'center',
   },
-  ctaRow: {
-    marginTop: spacing.lg,
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(16, 14, 32, 0.55)',
+  },
+  overlayCard: {
+    maxWidth: '80%',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.md,
+    borderWidth: 3,
+    borderColor: colors.inkLine,
+    backgroundColor: colors.panel,
+    alignItems: 'center',
+  },
+  overlayTitle: {
+    fontFamily: 'Bangers_400Regular',
+    fontSize: 28,
+    letterSpacing: 1,
+    color: colors.signal,
+    textAlign: 'center',
+  },
+  overlayBody: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 14,
+    color: colors.textOnInk,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  overlayButton: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md * 2,
+    borderRadius: 100,
+    backgroundColor: colors.signal,
+    borderWidth: 3,
+    borderColor: colors.inkLine,
+  },
+  overlayButtonPressed: {
+    opacity: 0.8,
+  },
+  overlayButtonText: {
+    fontFamily: 'Bangers_400Regular',
+    fontSize: 18,
+    letterSpacing: 1,
+    color: colors.ink,
   },
 });

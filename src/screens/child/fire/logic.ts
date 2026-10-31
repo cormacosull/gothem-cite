@@ -57,7 +57,7 @@ export const FIRE_LOCATIONS: FireLocation[] = [
 
 export const GAME_CONFIG = {
   /** Duration of the full mission. */
-  durationMs: 90_000,
+  durationMs: 60_000,
   /** Simulation step used by the view model. */
   tickMs: 33,
   /** Fires burning when the mission starts (each one in a different block). */
