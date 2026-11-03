@@ -1,22 +1,14 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, spacing, radii, inkShadow, fonts } from '../../theme/tokens';
-import { CHARACTERS } from '../../lib/characters';
 
-interface Props {
-  selectedCharacterId: string | null;
-}
 
 // Placeholder "holding" screen between the intro and an actual mission:
 // nothing to do yet but wait. Stands in for whatever Phase 3's mission
 // assignment eventually drives this screen to show/navigate to.
-export function StandbyScreen({ selectedCharacterId }: Props) {
-  const character = CHARACTERS.find((c) => c.id === selectedCharacterId);
-
+export function StandbyScreen() {
   return (
     <View style={styles.container}>
-      <View
-        style={[styles.badge, character && { backgroundColor: character.color }]}
-      />
+      <View style={styles.badge} />
       <Text style={styles.heading}>Standing By</Text>
       <Text style={styles.body}>
         Mission control is sizing up the situation. You'll be called into action the moment

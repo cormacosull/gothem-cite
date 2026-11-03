@@ -8,9 +8,6 @@ import { scale } from '../lib/scale';
 
 interface Props {
   players: Player[];
-  // Called once the intro sequence is done (last slide's timer ran out, or
-  // this device hit Skip). Shared by both the parent and child screens —
-  // each device plays its own copy of the same intro independently.
   onFinish: () => void;
 }
 
@@ -70,11 +67,12 @@ const styles = StyleSheet.create({
     minHeight: scale(44),
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: scale(8),
+    marginTop: scale(4),
   },
   skipButtonText: {
     color: colors.textMuted,
-    fontSize: scale(14),
+    fontSize: scale(12),
     fontFamily: fonts.bodyBold,
+
   },
 });

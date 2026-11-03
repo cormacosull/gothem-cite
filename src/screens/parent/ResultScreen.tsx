@@ -1,36 +1,40 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { router } from 'expo-router';
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { scale } from '../../lib/scale';
 import { colors, fonts } from '../../theme/tokens';
 import type { GameState } from '../../lib/protocol';
+import wonBackground from '../../../assets/result-won.png';
+import lostBackground from '../../../assets/result-lost.png';
 
 interface Props {
     state: GameState;
+    // Opens a fresh lobby with a new code
+    onPlayAgain: () => void;
 }
 
 // End of the game on mission control: final city health and how the team did.
-export default function ResultScreen({ state }: Props) {
+export default function ResultScreen({ state, onPlayAgain }: Props) {
     const won = state.status === 'won';
     const played = state.missions.filter((m) => m.status !== 'active');
     const succeeded = played.filter((m) => m.status === 'success').length;
 
     return (
         <View style={styles.layout}>
+            <Image source={won ? wonBackground : lostBackground} style={styles.backgroundImage} resizeMode="cover" />
             <View style={styles.main}>
                 <Text style={styles.eyebrow}>MISSION CONTROL</Text>
                 <Text style={[styles.title, !won && styles.titleLost]}>
                     {won ? 'Gothem is saved!' : 'Gothem has fallen…'}
                 </Text>
-                <Text style={styles.body}>
+                <Text style={styles.subtitle}>
                     Final city health: {Math.round(state.cityHealth)}%
                 </Text>
-                <Text style={styles.body}>
+                <Text style={styles.subtitle}>
                     The team won {succeeded} of {played.length} missions.
                 </Text>
-                {won && <Text style={styles.body}>WE GOTHEM!!!</Text>}
+                {won && <Text style={styles.subtitle}>WE GOTHEM!!!</Text>}
                 <View style={styles.actions}>
-                    <Pressable style={styles.primaryButton} onPress={() => router.back()}>
-                        <Text style={styles.primaryButtonText}>Back to menu</Text>
+                    <Pressable style={styles.primaryButton} onPress={onPlayAgain}>
+                        <Text style={styles.primaryButtonText}>Play again</Text>
                     </Pressable>
                 </View>
             </View>
@@ -48,15 +52,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: scale(24),
     },
+    backgroundImage: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        opacity: 0.6,
+    },
     main: {
         width: '100%',
         maxWidth: scale(520),
-        backgroundColor: colors.panel,
+        backgroundColor: 'rgba(11, 18, 32, 0.8)',
         padding: scale(24),
         borderRadius: scale(8),
         borderColor: colors.inkLine,
         borderWidth: scale(3),
-        alignItems: 'flex-start',
+        alignItems: 'center',
     },
     eyebrow: {
         color: colors.signal,
@@ -67,18 +81,25 @@ const styles = StyleSheet.create({
     },
     title: {
         color: colors.resolved,
-        fontSize: scale(30),
+        fontSize: scale(40),
         fontFamily: fonts.bodyBold,
+        letterSpacing: 1,
+        textAlign: 'center',
+        textShadowColor: colors.inkLine,
+        textShadowOffset: { width: 2, height: 2 },
+        textShadowRadius: 0,
         marginBottom: scale(16),
     },
     titleLost: {
         color: colors.alarm,
     },
-    body: {
+    subtitle: {
+        fontFamily: 'Nunito_700Bold',
         color: colors.textOnInk,
         fontSize: scale(16),
         lineHeight: scale(24),
-        marginBottom: scale(12),
+        textAlign: 'center',
+        marginBottom: scale(6),
     },
     actions: {
         width: '100%',

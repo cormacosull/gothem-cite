@@ -77,20 +77,7 @@ export function joinSession(
   return { playerId, state: session.state };
 }
 
-export function selectCharacter(code: string, playerId: string, characterId: string) {
-  const session = sessions.get(code);
-  if (!session) return;
 
-  const player = session.state.players.find((p) => p.id === playerId);
-  if (!player) return;
-
-  // Each hero can only be picked by one player
-  const taken = session.state.players.some((p) => p.id !== playerId && p.character === characterId);
-  if (taken) return;
-
-  player.character = characterId;
-  broadcastState(session);
-}
 
 export function startTutorial(code: string, socket: WebSocket): { error: string } | { ok: true } {
   const session = sessions.get(code);

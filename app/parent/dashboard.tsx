@@ -65,8 +65,8 @@ function MissionBoard({ state }: { state: GameState }) {
         {alerts.length === 0 ? (
           <Text style={styles.emptyMessage}>No missions have been assigned.</Text>
         ) : alerts.map((alert, index) => (
-          <View key={missions[index].id} style={[styles.alertLine, index % 2 === 0 && styles.alertLineAlternate]}>  {columns.map((column) => (
-              <Text key={column.key} style={[styles.alertLineCol, { width: column.width }]}>
+          <View key={missions[index].id} style={[styles.alertLine, index % 2 === 0 && styles.alertLineAlternate]}>
+            {columns.map((column) => (    <Text key={column.key} style={[styles.alertLineCol, { width: column.width }]}>
                 {column.key === 'status' ? (
                   <Text style={alert.status === 'Resolved' ? styles.statusResolved : alert.status === 'Failed' ? styles.statusFailed : styles.statusOpen}>
                     {alert.status}
