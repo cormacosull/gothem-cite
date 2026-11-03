@@ -2,15 +2,12 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useIntroViewModel } from '../viewmodels/useIntroViewModel';
 import { IntroSlide } from '../components/IntroSlide';
 import { PrimaryButton } from '../components/PrimaryButton';
-import { colors, spacing } from '../theme/tokens';
+import { colors, spacing, fonts } from '../theme/tokens';
 import type { Player } from '../lib/protocol';
 import { scale } from '../lib/scale';
 
 interface Props {
   players: Player[];
-  // Called once the intro sequence is done (last slide's timer ran out, or
-  // this device hit Skip). Shared by both the parent and child screens —
-  // each device plays its own copy of the same intro independently.
   onFinish: () => void;
 }
 
@@ -74,7 +71,8 @@ const styles = StyleSheet.create({
   },
   skipButtonText: {
     color: colors.textMuted,
-    fontSize: scale(11),
-    fontWeight: '700',
+    fontSize: scale(12),
+    fontFamily: fonts.bodyBold,
+
   },
 });

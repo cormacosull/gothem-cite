@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { View, Image, Text, Pressable, StyleSheet, PanResponder } from 'react-native';
 import { useChaseMissionViewModel } from '../../../viewmodels/useChaseMissionViewModel';
-import { colors, spacing, radii, inkShadow } from '../../../theme/tokens';
+import { colors, spacing, radii, inkShadow, fonts } from '../../../theme/tokens';
 import { ChaseBackground } from './ChaseArt';
 import chasePlayerCar from '../../../../assets/chase-player-car.png';
 import chaseObstacleCar1 from '../../../../assets/chase-obstacle-car1.png';
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   wordmark: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: 32,
     color: colors.signal,
     letterSpacing: 1,
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tagline: {
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fonts.bodyBold,
     fontSize: 14,
     color: colors.textOnInk,
     marginTop: spacing.xs,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.signal,
   },
   hint: {
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fonts.bodyBold,
     fontSize: 13,
     color: colors.textOnInk,
     marginTop: spacing.xs,
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   controlHint: {
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: fonts.body,
     fontSize: 12,
     color: colors.textMuted,
     marginTop: spacing.md,
@@ -277,14 +277,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   overlayTitle: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: 28,
     letterSpacing: 1,
     color: colors.signal,
     textAlign: 'center',
   },
   overlayBody: {
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fonts.bodyBold,
     fontSize: 14,
     color: colors.textOnInk,
     textAlign: 'center',
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   overlayButtonText: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: 18,
     letterSpacing: 1,
     color: colors.ink,

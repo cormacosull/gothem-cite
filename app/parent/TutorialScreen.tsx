@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { scale } from '../../src/lib/scale';
-import { colors } from '../../src/theme/tokens';
+import { colors, fonts } from '../../src/theme/tokens';
 
 interface Props {
     onFinished: () => void;
@@ -56,14 +56,14 @@ const styles = StyleSheet.create({
     eyebrow: {
         color: colors.signal,
         fontSize: scale(12),
-        fontWeight: '700',
+        fontFamily: fonts.bodyBold,
         letterSpacing: 1,
         marginBottom: scale(12),
     },
     title: {
         color: colors.textOnInk,
         fontSize: scale(30),
-        fontWeight: '700',
+        fontFamily: fonts.bodyBold,
         marginBottom: scale(16),
     },
     body: {
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     primaryButtonText: {
         color: colors.ink,
         fontSize: scale(16),
-        fontWeight: '700',
+        fontFamily: fonts.bodyBold,
     },
     skipButton: {
         minHeight: scale(44),
@@ -99,6 +99,6 @@ const styles = StyleSheet.create({
     skipButtonText: {
         color: colors.textMuted,
         fontSize: scale(14),
-        fontWeight: '700',
+        fontFamily: fonts.bodyBold,
     }
 });
