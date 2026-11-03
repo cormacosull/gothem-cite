@@ -10,7 +10,7 @@ import ResultScreen from '../../src/screens/parent/ResultScreen';
 
 
 export default function ParentDashboardRoute() {
-  const { state, error, startTutorial, completeTutorial } = useParentSessionViewModel();
+  const { state, error, startTutorial, completeTutorial, startNewSession } = useParentSessionViewModel();
 
   // Local only — tracks whether *this* device has played the lore intro for
   // the current tutorial, same as every child does independently. Both see
@@ -41,7 +41,7 @@ switch (state.status) {
       return <ParentDashboard state={state} />;
         case 'won':
     case 'lost':
-      return <ResultScreen state={state} />;
+      return <ResultScreen state={state} onPlayAgain={startNewSession} />;
     default:
       console.log("other screen: ", state.status)
       return;

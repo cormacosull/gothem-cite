@@ -96,6 +96,13 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
     setError(null);
     socket?.send({ type: 'tutorial_complete' });
   }
+  function startNewSession() {
+    sessionCodeRef.current = '';
+    setState(null);
+    setError(null);
+    startedRef.current = false;
+    socket?.send({ type: 'create_session' });
+  }
 
   const code = state?.code ?? '';
   const players: Player[] = state?.players ?? [];
@@ -112,6 +119,7 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
     isRunning,
     startTutorial,
     completeTutorial,
+    startNewSession,
     startGame: startTutorial,
     canStart: state?.status === 'lobby' && players.length > 0,
   };
