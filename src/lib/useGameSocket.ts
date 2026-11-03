@@ -7,14 +7,16 @@ const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL ?? 'ws://localhost:8080'
 
 export function useGameSocket() {
   const socketRef = useRef<GameSocket | null>(null);
-  const [lastMessage, setLastMessage] = useState<ServerMessage | null>(null);
+  const [messages, setMessages] = useState<ServerMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     const socket = new GameSocket(SERVER_URL);
     socketRef.current = socket;
     socket.connect();
-    const unsubMessage = socket.onMessage(setLastMessage);
+    const unsubMessage = socket.onMessage((message) => {
+      setMessages((current) => [...current, message]);
+    });
     const unsubStatus = socket.onStatusChange(setIsConnected);
 
     // A backgrounded app socket tends to die quietly; retry as soon as the app is active again 
@@ -30,5 +32,5 @@ export function useGameSocket() {
     };
   }, []);
 
-  return { socket: socketRef.current, lastMessage, isConnected };
+  return { socket: socketRef.current, messages, isConnected };
 }

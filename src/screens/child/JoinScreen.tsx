@@ -22,7 +22,6 @@ import { PuzzlerScreen } from './puzzler/PuzzlerScreen';
 import { colors, spacing, radii, inkShadow } from '../../theme/tokens';
 
 interface Props {
-  // Called once mission control starts the game
   onGameStart?: () => void;
 }
 
