@@ -1,8 +1,10 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { router } from 'expo-router';
 import { scale } from '../../lib/scale';
 import { colors } from '../../theme/tokens';
 import type { GameState } from '../../lib/protocol';
+import wonBackground from '../../../assets/result-won.png';
+import lostBackground from '../../../assets/result-lost.png';
 
 interface Props {
     state: GameState;
@@ -16,6 +18,7 @@ export default function ResultScreen({ state }: Props) {
 
     return (
         <View style={styles.layout}>
+            <Image source={won ? wonBackground : lostBackground} style={styles.backgroundImage} resizeMode="cover" />
             <View style={styles.main}>
                 <Text style={styles.eyebrow}>MISSION CONTROL</Text>
                 <Text style={[styles.title, !won && styles.titleLost]}>
@@ -47,6 +50,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: scale(24),
+    },
+    backgroundImage: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        opacity: 0.6,
     },
     main: {
         width: '100%',
