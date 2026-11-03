@@ -12,23 +12,23 @@ export type ParentSessionPhase =
   | 'lost';
 
 interface Options {
-  // Called once the tutorial completes and the live game starts.
   onGameStart?: () => void;
 }
 
 export function useParentSessionViewModel({ onGameStart }: Options = {}) {
-  const { socket, lastMessage, isConnected } = useGameSocket();
+  const { socket, messages, isConnected } = useGameSocket();
 
   const [state, setState] = useState<GameState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const sessionCodeRef = useRef('');
+  const processedMessageCountRef = useRef(0);
 
   const onGameStartRef = useRef(onGameStart);
   useEffect(() => {
     onGameStartRef.current = onGameStart;
   });
 
-  // Prevent duplicate navigation when state_update and reconnect_ack agree.
+  // Prevent duplicate navigations
   const startedRef = useRef(false);
 
   useEffect(() => {
@@ -42,45 +42,48 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
   }, [isConnected, socket]);
 
   useEffect(() => {
-    if (!lastMessage) return;
+    const newMessages = messages.slice(processedMessageCountRef.current);
+    processedMessageCountRef.current = messages.length;
 
-    if (lastMessage.type === 'session_created') {
-      sessionCodeRef.current = lastMessage.code;
-      setState(lastMessage.state);
-      setError(null);
-    }
-    if (lastMessage.type === 'state_update') {
-      setState(lastMessage.state);
-      if (lastMessage.state.status === 'playing' && !startedRef.current) {
-        startedRef.current = true;
-        onGameStartRef.current?.();
+    for (const message of newMessages) {
+      if (message.type === 'session_created') {
+        sessionCodeRef.current = message.code;
+        setState(message.state);
+        setError(null);
       }
-      if (lastMessage.state.status !== 'playing') {
-        startedRef.current = false;
+      if (message.type === 'state_update') {
+        setState(message.state);
+        if (message.state.status === 'playing' && !startedRef.current) {
+          startedRef.current = true;
+          onGameStartRef.current?.();
+        }
+        if (message.state.status !== 'playing') {
+          startedRef.current = false;
+        }
       }
-    }
 
-    if (lastMessage.type === 'reconnect_ack' && lastMessage.role === 'parent') {
-      setState(lastMessage.state);
-      if (lastMessage.state.status === 'playing' && !startedRef.current) {
-        startedRef.current = true;
-        onGameStartRef.current?.();
+      if (message.type === 'reconnect_ack' && message.role === 'parent') {
+        setState(message.state);
+        if (message.state.status === 'playing' && !startedRef.current) {
+          startedRef.current = true;
+          onGameStartRef.current?.();
+        }
+        if (message.state.status !== 'playing') {
+          startedRef.current = false;
+        }
       }
-      if (lastMessage.state.status !== 'playing') {
+      if (message.type === 'reconnect_error') {
+        sessionCodeRef.current = '';
+        setState(null);
+        setError(message.reason);
         startedRef.current = false;
+        socket?.send({ type: 'create_session' });
+      }
+      if (message.type === 'action_error') {
+        setError(message.reason);
       }
     }
-    if (lastMessage.type === 'reconnect_error') {
-      sessionCodeRef.current = '';
-      setState(null);
-      setError(lastMessage.reason);
-      startedRef.current = false;
-      socket?.send({ type: 'create_session' });
-    }
-    if (lastMessage.type === 'action_error') {
-      setError(lastMessage.reason);
-    }
-  }, [lastMessage, socket]);
+  }, [messages, socket]);
 
   function startTutorial() {
     if (state?.status !== 'lobby' || state.players.length === 0) return;
