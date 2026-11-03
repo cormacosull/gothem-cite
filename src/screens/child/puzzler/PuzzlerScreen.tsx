@@ -76,9 +76,7 @@ function Key({ label, result, onPress }: { label: string; result?: LetterValue; 
 }
 
 interface Props {
-  // Called once when the game ends
   onFinish?: (success: boolean) => void;
-  // Called when the player dismisses the result screen
   onContinue?: () => void;
 }
 

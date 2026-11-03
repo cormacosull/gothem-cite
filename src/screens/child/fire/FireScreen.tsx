@@ -4,11 +4,11 @@ import Svg, { Circle, Ellipse, G, Line, Path, Polygon, Rect } from 'react-native
 import { scale } from 'react-native-size-matters';
 import { useFireMissionViewModel } from '../../../viewmodels/useFireMissionViewModel';
 import { colors, spacing, radii } from '../../../theme/tokens';
-import { ENGINE_ART, ENGINE_LAYOUT, GAME_CONFIG, HOSE_ANCHOR, MAP_UNITS, getAimDirection, getFireVisual, toUnits, type FireLocation, type Point, } from './logic';
+import { ENGINE_ART, ENGINE_LAYOUT, GAME_CONFIG, HOSE_ANCHOR, IMAGE_UNITS, getAimDirection, getFireVisual, convertToImageUnits, type FireLocation, type Point, } from './logic';
 import apartments from '../../../../assets/apartments.webp';
 import fire from '../../../../assets/fire.png';
 
-const MAP_ASPECT_RATIO = MAP_UNITS.width / MAP_UNITS.height;
+const MAP_ASPECT_RATIO = IMAGE_UNITS.width / IMAGE_UNITS.height;
 const MAP_BORDER_WIDTH = 3;
 const SPRAY_BUTTON_SIZE = scale(82);
 
@@ -197,7 +197,7 @@ export function FireScreen({ onFinish, onContinue }: Props = {}) {
                     </Text>
                     <Text style={styles.overlayBody}>
                       {status === 'ready' &&
-                        `Keep fewer than ${formatPercent(GAME_CONFIG.winBelowBurningFraction)} of apartments burning for ${formatTime(GAME_CONFIG.durationMs)}. Immediately loss at ${formatPercent(GAME_CONFIG.loseAtBurningFraction)}.`}
+                        `Keep fewer than ${Math.round(GAME_CONFIG.winBelowBurningFraction * 100)}% of apartments burning for ${formatTime(GAME_CONFIG.durationMs)}. Immediately loss at ${Math.round(GAME_CONFIG.loseAtBurningFraction * 100)}%.`}
                       {status === 'won' &&
                         `Victory, you kept the fires under control!`}
                       {status === 'lost' &&
@@ -252,15 +252,12 @@ function useSpaceBarSpray(setSpraying: (spraying: boolean) => void) {
       event.preventDefault();
       setSpraying(false);
     };
-    // const onBlur = () => setSpraying(false); // window lost focus while space was held
 
     target.addEventListener('keydown', onKeyDown);
     target.addEventListener('keyup', onKeyUp);
-    // target.addEventListener('blur', onBlur);
     return () => {
       target.removeEventListener('keydown', onKeyDown);
       target.removeEventListener('keyup', onKeyUp);
-      // target.removeEventListener('blur', onBlur);
       setSpraying(false);
     };
   }, [setSpraying]);
@@ -272,10 +269,6 @@ const OVERLAY_COPY = {
   won: { title: 'You saved the day!', button: 'PLAY AGAIN' },
   lost: { title: "Mission failed!", button: 'TRY AGAIN' },
 } as const;
-
-function formatPercent(fraction: number) {
-  return `${Math.round(fraction * 100)}%`;
-}
 
 function formatTime(ms: number) {
   const totalSeconds = Math.ceil(ms / 1000);
@@ -322,35 +315,35 @@ interface ArtLayerProps {
 
 //all the drawings on top of the image, like the hose, water, fire truck
 function ArtLayer({ nozzle, landing, spraying, elapsedMs, hitLocation }: ArtLayerProps) {
-  const anchor = toUnits(HOSE_ANCHOR);
-  const tip = toUnits(nozzle);
-  const target = toUnits(landing);
+  const anchor = convertToImageUnits(HOSE_ANCHOR);
+  const tip = convertToImageUnits(nozzle);
+  const target = convertToImageUnits(landing);
   const dir = getAimDirection(nozzle);
 
-  // Hose: drooping curve from the engine to the back of the nozzle.
+  // Hose: curve from the engine to the back of the nozzle.
   const hoseEnd = { x: tip.x - dir.x * 16, y: tip.y - dir.y * 16 };
   const hoseLength = Math.hypot(hoseEnd.x - anchor.x, hoseEnd.y - anchor.y);
   const sag = Math.min(80, hoseLength * 0.2);
   const hosePath = `M ${anchor.x} ${anchor.y} Q ${(anchor.x + hoseEnd.x) / 2} ${(anchor.y + hoseEnd.y) / 2 + sag
     } ${hoseEnd.x} ${hoseEnd.y}`;
 
-  // Water arc: from the nozzle to the landing point, lifted in the middle.
+  // Water arc: from the nozzle to the landing point.
   const arcLength = Math.hypot(target.x - tip.x, target.y - tip.y);
   const arcLift = Math.min(220, arcLength * 0.35);
   const arcPath = `M ${tip.x} ${tip.y} Q ${(tip.x + target.x) / 2} ${(tip.y + target.y) / 2 - arcLift
     } ${target.x} ${target.y}`;
 
   const nozzleAngle = (Math.atan2(dir.y, dir.x) * 180) / Math.PI;
-  const engineX = ENGINE_LAYOUT.x * MAP_UNITS.width;
-  const engineY = ENGINE_LAYOUT.y * MAP_UNITS.height;
-  const engineScale = (ENGINE_LAYOUT.width * MAP_UNITS.width) / ENGINE_ART.width;
+  const engineX = ENGINE_LAYOUT.x * IMAGE_UNITS.width;
+  const engineY = ENGINE_LAYOUT.y * IMAGE_UNITS.height;
+  const engineScale = (ENGINE_LAYOUT.width * IMAGE_UNITS.width) / ENGINE_ART.width;
   const beaconOn = Math.floor(elapsedMs / 280) % 2 === 0;
 
   return (
     <Svg
       width="100%"
       height="100%"
-      viewBox={`0 0 ${MAP_UNITS.width} ${MAP_UNITS.height}`}
+      viewBox={`0 0 ${IMAGE_UNITS.width} ${IMAGE_UNITS.height}`}
       style={StyleSheet.absoluteFill}
     >
       {/* Fire engine */}
@@ -485,8 +478,8 @@ function Splash({ elapsedMs }: { elapsedMs: number }) {
 }
 
 function Steam({ location, elapsedMs }: { location: FireLocation; elapsedMs: number }) {
-  const centerX = (location.x + location.width / 2) * MAP_UNITS.width;
-  const topY = location.y * MAP_UNITS.height;
+  const centerX = (location.x + location.width / 2) * IMAGE_UNITS.width;
+  const topY = location.y * IMAGE_UNITS.height;
   return (
     <>
       {[0, 1, 2].map((i) => {
