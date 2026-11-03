@@ -54,7 +54,9 @@ export function JoinScreen({ onGameStart }: Props) {
 
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Text style={styles.wordmark}>Gothem Cité</Text>
+      {Platform.OS == 'web' && (
+        <Text style={styles.wordmark}>Gothem Cité</Text>
+      )}
       {phase !== 'intro' && phase !== 'standby' && phase !== 'interlude' && phase !== 'gameOver' && (
         <Text style={styles.tagline}>
           {phase === 'selecting'

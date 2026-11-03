@@ -163,6 +163,8 @@ export function PuzzlerScreen({ onFinish, onContinue }: Props = {}) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+    width: "100%",
+    height: "100%",
     backgroundColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center',
@@ -224,6 +226,7 @@ const styles = StyleSheet.create({
   keyboard: {
     width: '100%',
     maxWidth: 500,
+    marginBottom: 20
   },
   keyRow: {
     flexDirection: 'row',
