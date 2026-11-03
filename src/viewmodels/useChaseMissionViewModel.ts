@@ -6,9 +6,10 @@ import {
   SURVIVAL_MS,
   TICK_MS,
   SPAWN_INTERVAL_MS,
+  MAX_LIVES,
   spawnObstacle,
   advanceObstacles,
-  hasCollision,
+  findCollidingObstacleIds,
   getStatus,
   clampLane,
   type Lane,
@@ -29,11 +30,15 @@ export function useChaseMissionViewModel({ onFinish }: Options = {}) {
   const [playerLane, setPlayerLane] = useState<Lane>(1);
   const [obstacles, setObstacles] = useState<Obstacle[]>([]);
   const [elapsedMs, setElapsedMs] = useState(0);
-  const [collided, setCollided] = useState(false);
+  const [lives, setLives] = useState(MAX_LIVES);
   const [started, setStarted] = useState(false);
 
+  // Obstacles already counted as a hit, so one doesn't cost a second life
+  // while it keeps overlapping the player across ticks.
+  const hitIdsRef = useRef<Set<string>>(new Set());
+
   // 'ready' until START is pressed on the popup, like the fire game
-  const status: ChaseStatus = started ? getStatus(elapsedMs, collided) : 'ready';
+  const status: ChaseStatus = started ? getStatus(elapsedMs, lives) : 'ready';
 
   const onFinishRef = useRef(onFinish);
   useEffect(() => {
@@ -64,22 +69,25 @@ export function useChaseMissionViewModel({ onFinish }: Options = {}) {
     return () => clearInterval(interval);
   }, [status]);
 
-  // Collision check:  runs whenever the board actually changes
+  // Collision check: runs whenever the board actually changes
   useEffect(() => {
     if (status !== 'playing') return;
-    if (hasCollision(playerLane, obstacles)) {
-      setCollided(true);
-    }
+    const collidingIds = findCollidingObstacleIds(playerLane, obstacles);
+    const newHits = collidingIds.filter((id) => !hitIdsRef.current.has(id));
+    if (newHits.length === 0) return;
+    newHits.forEach((id) => hitIdsRef.current.add(id));
+    setLives((current) => Math.max(0, current - newHits.length));
   }, [obstacles, playerLane, status]);
 
   /** Starts the chase, or restarts it after a win or a loss. */
   function start() {
     if (status === 'playing') return;
     finishedRef.current = false;
+    hitIdsRef.current = new Set();
     setPlayerLane(1);
     setObstacles([]);
     setElapsedMs(0);
-    setCollided(false);
+    setLives(MAX_LIVES);
     setStarted(true);
   }
 
@@ -120,6 +128,8 @@ export function useChaseMissionViewModel({ onFinish }: Options = {}) {
     obstacles,
     elapsedMs,
     survivalMs: SURVIVAL_MS,
+    lives,
+    maxLives: MAX_LIVES,
     status,
     start,
     moveLeft,

@@ -5,6 +5,7 @@ export const SURVIVAL_MS = 20000; // how long the player must dodge to win
 export const TICK_MS = 50; // game loop
 export const OBSTACLE_TRAVEL_MS = 2000; // time an obstacle takes to reach the player
 export const SPAWN_INTERVAL_MS = 850; // time between obstacle spawns
+export const MAX_LIVES = 2; // hits the player can take before losing
 // Both derived from ChaseScreen's board geometry (420px board, 340px wide,
 // obstacle 46% width / 0.93 aspect ratio, player 34% width / 0.56 aspect
 // ratio, player 10px off the bottom) so the hitbox matches what's drawn:
@@ -42,16 +43,21 @@ export function advanceObstacles(obstacles: Obstacle[], deltaMs: number): Obstac
     .filter((o) => o.progress <= 1.05); // drop once its past the player
 }
 
-export function hasCollision(playerLane: Lane, obstacles: Obstacle[]): boolean {
-  return obstacles.some((o) => {
-    if (o.lane !== playerLane) return false;
-    const leadingEdge = o.progress + CAR_LENGTH_FRACTION;
-    return leadingEdge >= COLLISION_WINDOW_START && o.progress <= 1;
-  });
+/** Ids of obstacles touching the player right now, for the caller to turn
+ * into lost lives (and remember, so one obstacle isn't counted twice while
+ * it keeps overlapping across ticks). */
+export function findCollidingObstacleIds(playerLane: Lane, obstacles: Obstacle[]): string[] {
+  return obstacles
+    .filter((o) => {
+      if (o.lane !== playerLane) return false;
+      const leadingEdge = o.progress + CAR_LENGTH_FRACTION;
+      return leadingEdge >= COLLISION_WINDOW_START && o.progress <= 1;
+    })
+    .map((o) => o.id);
 }
 
-export function getStatus(elapsedMs: number, collided: boolean): ChaseStatus {
-  if (collided) return 'lost';
+export function getStatus(elapsedMs: number, livesLeft: number): ChaseStatus {
+  if (livesLeft <= 0) return 'lost';
   if (elapsedMs >= SURVIVAL_MS) return 'won';
   return 'playing';
 }
