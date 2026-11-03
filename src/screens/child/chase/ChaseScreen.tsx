@@ -1,7 +1,20 @@
 import { useEffect, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet, PanResponder } from 'react-native';
+import { View, Image, Text, Pressable, StyleSheet, PanResponder } from 'react-native';
 import { useChaseMissionViewModel } from '../../../viewmodels/useChaseMissionViewModel';
 import { colors, spacing, radii, inkShadow } from '../../../theme/tokens';
+import { ChaseBackground } from './ChaseArt';
+import chasePlayerCar from '../../../../assets/chase-player-car.png';
+import chaseObstacleCar1 from '../../../../assets/chase-obstacle-car1.png';
+import chaseObstacleCar2 from '../../../../assets/chase-obstacle-car2.png';
+
+const OBSTACLE_CARS = [chaseObstacleCar1, chaseObstacleCar2];
+
+// Deterministic pick per obstacle id, so a car keeps the same look for its lifetime.
+function obstacleCarImage(id: string) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) | 0;
+  return OBSTACLE_CARS[Math.abs(hash) % OBSTACLE_CARS.length];
+}
 
 const SWIPE_THRESHOLD = 40;
 const BOARD_HEIGHT = 420;
@@ -57,6 +70,7 @@ export function ChaseScreen({ onFinish, onContinue }: Props = {}) {
       <Text style={styles.hint}>{`Hold out ${secondsLeft}s more`}</Text>
 
       <View style={styles.board} {...panResponder.panHandlers}>
+        <ChaseBackground />
         {Array.from({ length: laneCount }, (_, lane) => (
           <View key={lane} style={styles.lane}>
             {obstacles
@@ -65,9 +79,15 @@ export function ChaseScreen({ onFinish, onContinue }: Props = {}) {
                 <View
                   key={o.id}
                   style={[styles.obstacle, { top: `${Math.min(o.progress, 1) * 90}%` }]}
-                />
+                >
+                  <Image source={obstacleCarImage(o.id)} style={styles.carImage} resizeMode="contain" />
+                </View>
               ))}
-            {lane === playerLane && <View style={styles.player} />}
+            {lane === playerLane && (
+              <View style={styles.player}>
+                <Image source={chasePlayerCar} style={styles.carImage} resizeMode="contain" />
+              </View>
+            )}
           </View>
         ))}
 
@@ -152,7 +172,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: BOARD_HEIGHT,
     flexDirection: 'row',
-    backgroundColor: colors.panel,
     borderWidth: 3,
     borderColor: colors.inkLine,
     borderRadius: radii.md,
@@ -161,31 +180,24 @@ const styles = StyleSheet.create({
   },
   lane: {
     flex: 1,
-    borderLeftWidth: 1,
-    borderLeftColor: colors.inkLine,
     position: 'relative',
   },
   obstacle: {
     position: 'absolute',
-    left: '15%',
-    width: '70%',
-    aspectRatio: 1,
-    backgroundColor: colors.alarm,
-    borderWidth: 2,
-    borderColor: colors.inkLine,
-    borderRadius: radii.sm,
+    left: '27%',
+    width: '46%',
+    aspectRatio: 0.93,
   },
   player: {
     position: 'absolute',
     bottom: 10,
-    left: '15%',
-    width: '70%',
-    aspectRatio: 1,
-    backgroundColor: colors.signal,
-    borderWidth: 2,
-    borderColor: colors.inkLine,
-    borderRadius: radii.sm,
-    ...inkShadow(2),
+    left: '33%',
+    width: '34%',
+    aspectRatio: 0.56,
+  },
+  carImage: {
+    width: '100%',
+    height: '100%',
   },
   controlHint: {
     fontFamily: 'Nunito_400Regular',
