@@ -26,6 +26,13 @@ const OVERLAY_COPY = {
   lost: { title: 'BOOM!', button: 'TRY AGAIN' },
 } as const;
 
+function formatTime(ms: number) {
+  const totalSeconds = Math.ceil(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+}
+
 // One square of the grid
 function Tile({ letter, result }: { letter?: string; result?: LetterValue }) {
   const darkText = result === 'correct' || result === 'present';
@@ -83,12 +90,16 @@ export function PuzzlerScreen({ onFinish, onContinue }: Props = {}) {
     status,
     errorText,
     keyboardColors,
+    timeLeftMs,
+    hintLetters,
+    hintsLeft,
+    canHint,
     start,
+    revealHint,
     addLetter,
     deleteLetter,
     submitGuess,
   } = usePuzzlerViewModel({ onFinish });
-
   // Always 6 rows: submitted guesses, then the row being typed, then empty rows
   const rows = Array.from({ length: MAX_GUESSES }, (_, r) => {
     if (r < guesses.length) return guesses[r];
@@ -106,6 +117,26 @@ export function PuzzlerScreen({ onFinish, onContinue }: Props = {}) {
     <View style={styles.screen}>
       <Text style={styles.title}>The Puzzler</Text>
       <Text style={styles.subtitle}>Crack the 5-letter code to defuse the bomb</Text>
+      
+      <View style={styles.hud}>
+        <View style={styles.hudItem}>
+          <Text style={styles.hudTitles}>Time</Text>
+          <View style={styles.timer}>
+            <Text style={styles.hudItemText}>{formatTime(timeLeftMs)}</Text>
+          </View>
+        </View>
+        <View style={styles.hudItem}>
+          <Text style={styles.hudTitles}>Hints</Text>
+          <Pressable
+            accessibilityRole="button"
+            disabled={!canHint}
+            onPress={revealHint}
+            style={({ pressed }) => [styles.hintButton, !canHint && styles.hintButtonDisabled, pressed && styles.hintButtonPressed]}
+          >
+            <Text style={styles.hudItemText}>{hintsLeft} left</Text>
+          </Pressable>
+        </View>
+      </View>
 
       <View style={styles.board}>
         {rows.map((row, r) => (
@@ -116,6 +147,10 @@ export function PuzzlerScreen({ onFinish, onContinue }: Props = {}) {
           </View>
         ))}
       </View>
+
+      {hintLetters.some((letter) => letter !== null) && (
+        <Text style={styles.hintText}>Hint: {hintLetters.map((letter) => letter ?? '_').join(' ')}</Text>
+      )}
 
       <View style={styles.messageArea}>
         {errorText !== '' && <Text style={styles.error}>{errorText}</Text>}
@@ -138,11 +173,13 @@ export function PuzzlerScreen({ onFinish, onContinue }: Props = {}) {
             <Text style={styles.overlayTitle}>{OVERLAY_COPY[status].title}</Text>
             <Text style={styles.overlayBody}>
               {status === 'ready' &&
-                `Crack the ${WORD_LENGTH}-letter code in ${MAX_GUESSES} tries to defuse the bomb.`}
+                `Crack the ${WORD_LENGTH}-letter code in ${MAX_GUESSES} tries and ${formatTime(timeLeftMs)} to defuse the bomb. You get 2 hints.`}
               {status === 'won' &&
                 `Victory, you cracked the code in ${guesses.length} tries!`}
               {status === 'lost' &&
-                `The code was ${answer}.`}
+                (timeLeftMs <= 0
+                  ? `Time's up! The code was ${answer}.`
+                  : `The code was ${answer}.`)}
             </Text>
             <Pressable
               accessibilityRole="button"
@@ -307,5 +344,56 @@ const styles = StyleSheet.create({
     fontSize: 18,
     letterSpacing: 1,
     color: colors.ink,
+  },
+    hud: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  hudItem: {
+    alignItems: 'center',
+  },
+  hudTitles: {
+    fontFamily: 'Nunito_700Bold',
+    fontSize: 12,
+    textAlign: 'center',
+    color: colors.textOnInk,
+    fontStyle: 'italic',
+    textDecorationLine: 'underline',
+  },
+  timer: {
+    width: 90,
+    height: 32,
+    borderRadius: 7,
+    backgroundColor: 'silver',
+    justifyContent: 'center',
+  },
+  hudItemText: {
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontStyle: 'italic',
+    fontSize: 16,
+  },
+  hintButton: {
+    width: 90,
+    height: 32,
+    borderRadius: 7,
+    backgroundColor: colors.signal,
+    borderWidth: 2,
+    borderColor: colors.inkLine,
+    justifyContent: 'center',
+  },
+  hintButtonDisabled: {
+    opacity: 0.4,
+  },
+  hintButtonPressed: {
+    opacity: 0.8,
+  },
+  hintText: {
+    fontFamily: 'Nunito_800ExtraBold',
+    fontSize: 16,
+    letterSpacing: 2,
+    color: colors.signal,
   },
 });

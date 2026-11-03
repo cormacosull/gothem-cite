@@ -1,11 +1,15 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   WORD_LENGTH,
+  DURATION_MS,
+  TICK_MS,
+  MAX_HINTS,
   pickRandomAnswer,
   isValidGuess,
   scoreGuess,
   getGameStatus,
   getKeyboardColors,
+  findHintIndex,
   type Guess,
   type GameStatus,
 } from '../screens/child/puzzler/logic';
@@ -23,10 +27,38 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
   const [currentGuess, setCurrentGuess] = useState('');
   const [errorText, setErrorText] = useState('');
   const [started, setStarted] = useState(false);
+  const [timeLeftMs, setTimeLeftMs] = useState(DURATION_MS);
+  const [hintIndexes, setHintIndexes] = useState<number[]>([]);
 
-  // Derived from guesses, so they're never out of sync. 'ready' until START is pressed
-  const status: GameStatus = started ? getGameStatus(guesses) : 'ready';
+  // Derived from guesses and the timer, so they're never out of sync. 'ready' until START is pressed
+  const status: GameStatus = started ? getGameStatus(guesses, timeLeftMs) : 'ready';
   const keyboardColors = getKeyboardColors(guesses);
+  const nextHintIndex = findHintIndex(guesses, hintIndexes);
+
+  const onFinishRef = useRef(onFinish);
+  useEffect(() => {
+    onFinishRef.current = onFinish;
+  }, [onFinish]);
+
+  // Reports the result once, whether the game ended on a guess or on the timer
+  useEffect(() => {
+    if ((status !== 'won' && status !== 'lost') || reportedResultRef.current) return;
+    reportedResultRef.current = true;
+    onFinishRef.current?.(status === 'won');
+  }, [status]);
+
+  // Countdown like the fire game's loop; it only runs while the game is being played
+  useEffect(() => {
+    if (status !== 'playing') return;
+    let last = Date.now();
+    const timer = setInterval(() => {
+      const now = Date.now();
+      const dt = now - last;
+      last = now;
+      setTimeLeftMs((t) => Math.max(0, t - dt));
+    }, TICK_MS);
+    return () => clearInterval(timer);
+  }, [status]);
 
   // Starts the game, or restarts it with a new word after a win or a loss
   function start() {
@@ -36,6 +68,8 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
     setGuesses([]);
     setCurrentGuess('');
     setErrorText('');
+    setTimeLeftMs(DURATION_MS);
+    setHintIndexes([]);
     setStarted(true);
   }
 
@@ -65,15 +99,14 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
       return;
     }
 
-    const newGuesses = [...guesses, { word: currentGuess, result: scoreGuess(currentGuess, answer) }];
-    setGuesses(newGuesses);
+    setGuesses([...guesses, { word: currentGuess, result: scoreGuess(currentGuess, answer) }]);
     setCurrentGuess('');
+  }
 
-    const newStatus = getGameStatus(newGuesses);
-    if (newStatus !== 'playing' && !reportedResultRef.current) {
-      reportedResultRef.current = true;
-      onFinish?.(newStatus === 'won');
-    }
+  // Reveals the first letter (left to right) that hasn't been found yet, up to MAX_HINTS times
+  function revealHint() {
+    if (status !== 'playing' || hintIndexes.length >= MAX_HINTS || nextHintIndex === null) return;
+    setHintIndexes([...hintIndexes, nextHintIndex]);
   }
 
   return {
@@ -83,7 +116,13 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
     status,
     errorText,
     keyboardColors,
+    timeLeftMs,
+    // Letters given by hints, by position (null where nothing was revealed)
+    hintLetters: Array.from({ length: WORD_LENGTH }, (_, i) => (hintIndexes.includes(i) ? answer[i] : null)),
+    hintsLeft: MAX_HINTS - hintIndexes.length,
+    canHint: status === 'playing' && hintIndexes.length < MAX_HINTS && nextHintIndex !== null,
     start,
+    revealHint,
     addLetter,
     deleteLetter,
     submitGuess,

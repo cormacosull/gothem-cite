@@ -4,6 +4,10 @@ import allowedData from './nonwordles.json'
 export const WORD_LENGTH = 5;
 export const MAX_GUESSES = 6;
 
+export const DURATION_MS = 120_000; // 2 minutes to crack the code
+export const TICK_MS = 250; // countdown refresh
+export const MAX_HINTS = 2;
+
 export type LetterValue = 'correct' | 'present' | 'absent';
 
 export interface Guess {
@@ -80,11 +84,11 @@ export function isAnswer(result: LetterValue[]): boolean {
   return result.every((r) => r === 'correct');
 }
 
-// Returns the current game status based on the guesses made
-export function getGameStatus(guesses: Guess[]): GameStatus {
+// Returns the current game status based on the guesses made and the time left
+export function getGameStatus(guesses: Guess[], timeLeftMs: number): GameStatus {
   const last = guesses[guesses.length - 1];
   if (last && isAnswer(last.result)) return 'won';
-  if (guesses.length >= MAX_GUESSES) return 'lost';
+  if (guesses.length >= MAX_GUESSES || timeLeftMs <= 0) return 'lost';
   return 'playing';
 }
 
@@ -103,11 +107,15 @@ export function getKeyboardColors(guesses: Guess[]): Record<string, LetterValue>
   return colors;
 }
 
-
-
-
-
-
+// First position (left to right) whose letter hasn't been found yet, by a
+// green tile or an earlier hint. null when every letter is already known
+export function findHintIndex(guesses: Guess[], hintIndexes: number[]): number | null {
+  for (let i = 0; i < WORD_LENGTH; i++) {
+    const found = guesses.some((g) => g.result[i] === 'correct');
+    if (!found && !hintIndexes.includes(i)) return i;
+  }
+  return null;
+}
 
 
 
