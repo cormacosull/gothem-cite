@@ -3,7 +3,7 @@ import { useGameSocket } from '../lib/useGameSocket';
 import type { Player, Mission } from '../lib/protocol';
 
 // Pause between two missions in seconds
-const INTERLUDE_SECONDS = 6;
+const INTERLUDE_SECONDS = 5;
 
 function findOwnMission(missions: Mission[], playerId: string | null): Mission | null {
   if (!playerId) return null;
@@ -35,14 +35,12 @@ export type SessionPhase =
   | 'error';
 
 interface Options {
-  // Called once the post-game-start intro sequence finishes (last slide's
-  // timer ran out, or the player skipped it), so the screen can navigate on
-  // to the assigned minigame.
+  // Called once the post-game-start intro sequence finishes
   onGameStart?: () => void;
 }
 
 export function useSessionViewModel({ onGameStart }: Options = {}) {
-  const { socket, lastMessage, isConnected } = useGameSocket();
+  const { socket, messages, isConnected } = useGameSocket();
 
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
@@ -57,93 +55,94 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
   const [interludeSecondsLeft, setInterludeSecondsLeft] = useState(0);
   const [gameResult, setGameResult] = useState<'won' | 'lost' | null>(null);
   const playerIdRef = useRef<string | null>(null);
+  const processedMessageCountRef = useRef(0);
 
   const onGameStartRef = useRef(onGameStart);
   useEffect(() => {
     onGameStartRef.current = onGameStart;
   });
 
-  // A reconnect's state_update broadcast and its reconnect_ack carry the
-  // same state — this dedupes onGameStart across the two instead of firing
-  // it twice for one lobby->running transition.
   const startedRef = useRef(false);
 
   useEffect(() => {
-    if (!lastMessage) return;
+    const newMessages = messages.slice(processedMessageCountRef.current);
+    processedMessageCountRef.current = messages.length;
 
-    if (lastMessage.type === 'join_ack') {
-      playerIdRef.current = lastMessage.playerId;
-      setPhase('selecting');
-      setPlayers(lastMessage.state.players);
-    }
-    if (lastMessage.type === 'join_error') {
-      setPhase('error');
-      setErrorText(lastMessage.reason);
-    }
-    if (lastMessage.type === 'reconnect_ack' && lastMessage.role === 'child') {
-      setPlayers(lastMessage.state.players);
-      setCityHealth(lastMessage.state.cityHealth);
-      const started = lastMessage.state.status !== 'lobby';
-      if (started && !startedRef.current) {
-        startedRef.current = true;
-        setPhase('intro');
-      } else if (!started) {
-        startedRef.current = false;
-        // Reconnecting mid-selection shouldn't force a re-pick 
-        const me = lastMessage.state.players.find((p) => p.id === playerIdRef.current);
-        if (me?.character) {
-          setSelectedCharacterId(me.character);
-          setPhase('waiting');
-        } else {
-          setPhase('selecting');
+    for (const message of newMessages) {
+      if (message.type === 'join_ack') {
+        playerIdRef.current = message.playerId;
+        setPhase('selecting');
+        setPlayers(message.state.players);
+      }
+      if (message.type === 'join_error') {
+        setPhase('error');
+        setErrorText(message.reason);
+      }
+      if (message.type === 'reconnect_ack' && message.role === 'child') {
+        setPlayers(message.state.players);
+        setCityHealth(message.state.cityHealth);
+        const started = message.state.status !== 'lobby';
+        if (started && !startedRef.current) {
+          startedRef.current = true;
+          setPhase('intro');
+        } else if (!started) {
+          startedRef.current = false;
+          // Reconnecting mid-selection shouldn't force a re-pick
+          const me = message.state.players.find((p) => p.id === playerIdRef.current);
+          if (me?.character) {
+            setSelectedCharacterId(me.character);
+            setPhase('waiting');
+          } else {
+            setPhase('selecting');
+          }
+        }
+        if (started) {
+          const next = findNextMission(message.state.missions, playerIdRef.current, mission?.id ?? null);
+          if (next) setNextMission(next);
+        }
+        // Starting the game should skip the intro on all devices
+        if (message.state.status === 'playing') {
+          setPhase((current) => (current === 'intro' ? 'standby' : current));
+        }
+        // Reconnecting after the game already ended
+        if (message.state.status === 'won' || message.state.status === 'lost') {
+          setGameResult(message.state.status);
+          setPhase('gameOver');
         }
       }
-      if (started) {
-        const next = findNextMission(lastMessage.state.missions, playerIdRef.current, mission?.id ?? null);
-        if (next) setNextMission(next);
+      if (message.type === 'reconnect_error') {
+        playerIdRef.current = null;
+        setPhase('error');
+        setErrorText(message.reason);
       }
-      // Starting the game should skip the intro on all devices
-      if (lastMessage.state.status === 'playing') {
-        setPhase((current) => (current === 'intro' ? 'standby' : current));
+      if (message.type === 'assign_mission') {
+        setNextMission(message.mission);
       }
-      // Reconnecting after the game already ended
-      if (lastMessage.state.status === 'won' || lastMessage.state.status === 'lost') {
-        setGameResult(lastMessage.state.status);
+      if (message.type === 'state_update') {
+        setCityHealth(message.state.cityHealth);
+        const started = message.state.status !== 'lobby';
+        if (started && !startedRef.current) {
+          startedRef.current = true;
+          setPhase('intro');
+        } else if (!started) {
+          startedRef.current = false;
+          setPlayers(message.state.players);
+        }
+        if (started) {
+          const next = findNextMission(message.state.missions, playerIdRef.current, mission?.id ?? null);
+          if (next) setNextMission(next);
+        }
+        // Starting the game should skip the intro on all devices
+        if (message.state.status === 'playing') {
+          setPhase((current) => (current === 'intro' ? 'standby' : current));
+        }
+      }
+      if (message.type === 'game_over') {
+        setGameResult(message.result);
         setPhase('gameOver');
       }
     }
-    if (lastMessage.type === 'reconnect_error') {
-      playerIdRef.current = null;
-      setPhase('error');
-      setErrorText(lastMessage.reason);
-    }
-    if (lastMessage.type === 'assign_mission') {
-      setNextMission(lastMessage.mission);
-    }
-    if (lastMessage.type === 'state_update') {
-      setCityHealth(lastMessage.state.cityHealth);
-      const started = lastMessage.state.status !== 'lobby';
-      if (started && !startedRef.current) {
-        startedRef.current = true;
-        setPhase('intro');
-      } else if (!started) {
-        startedRef.current = false;
-        setPlayers(lastMessage.state.players);
-      }
-      if (started) {
-        const next = findNextMission(lastMessage.state.missions, playerIdRef.current, mission?.id ?? null);
-        if (next) setNextMission(next);
-      }
-      // Starting the game should skip the intro on all devices
-      if (lastMessage.state.status === 'playing') {
-        setPhase((current) => (current === 'intro' ? 'standby' : current));
-      }
-    }
-    if (lastMessage.type === 'game_over') {
-      setGameResult(lastMessage.result);
-      setPhase('gameOver');
-    }
-  }, [lastMessage]);
+  }, [messages, mission]);
 
   useEffect(() => {
     if (isConnected && playerIdRef.current) {
