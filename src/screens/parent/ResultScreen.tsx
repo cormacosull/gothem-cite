@@ -29,7 +29,7 @@ export default function ResultScreen({ state }: Props) {
                 </Text>
                 {won && <Text style={styles.body}>WE GOTHEM!!!</Text>}
                 <View style={styles.actions}>
-                    <Pressable style={styles.primaryButton} onPress={router.back}>
+                    <Pressable style={styles.primaryButton} onPress={() => router.back()}>
                         <Text style={styles.primaryButtonText}>Back to menu</Text>
                     </Pressable>
                 </View>

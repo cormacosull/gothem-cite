@@ -37,7 +37,7 @@ export function FireScreen({ onFinish, onContinue }: Props = {}) {
     setSpraying,
   } = useFireMissionViewModel({ onFinish });
   const [availableMapSize, setAvailableMapSize] = useState({ width: 0, height: 0 });
-  const activeAimTouchId = useRef<string | null>(null);
+  const activeAimTouchId = useRef<number | null>(null);
 
   useSpaceBarSpray(setSpraying);
 
