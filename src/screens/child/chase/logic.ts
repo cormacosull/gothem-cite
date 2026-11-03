@@ -3,9 +3,17 @@ export type Lane = 0 | 1 | 2;
 
 export const SURVIVAL_MS = 20000; // how long the player must dodge to win
 export const TICK_MS = 50; // game loop
-export const OBSTACLE_TRAVEL_MS = 1700; // time an obstacle takes to reach the player
+export const OBSTACLE_TRAVEL_MS = 2000; // time an obstacle takes to reach the player
 export const SPAWN_INTERVAL_MS = 850; // time between obstacle spawns
-export const COLLISION_WINDOW_START = 0.85; // progress range counted as collision
+// Both derived from ChaseScreen's board geometry (420px board, 340px wide,
+// obstacle 46% width / 0.93 aspect ratio, player 34% width / 0.56 aspect
+// ratio, player 10px off the bottom) so the hitbox matches what's drawn:
+// progress where the player's own top edge sits, on the 0..1 scale an
+// obstacle's top edge travels (which only covers the top 90% of the board).
+export const COLLISION_WINDOW_START = 0.9;
+// An obstacle's own length on that same scale, so a hit is judged by its
+// leading edge (the one reaching the player first), not its trailing edge.
+export const CAR_LENGTH_FRACTION = 0.15;
 
 export interface Obstacle {
   id: string;
@@ -35,9 +43,11 @@ export function advanceObstacles(obstacles: Obstacle[], deltaMs: number): Obstac
 }
 
 export function hasCollision(playerLane: Lane, obstacles: Obstacle[]): boolean {
-  return obstacles.some(
-    (o) => o.lane === playerLane && o.progress >= COLLISION_WINDOW_START && o.progress <= 1
-  );
+  return obstacles.some((o) => {
+    if (o.lane !== playerLane) return false;
+    const leadingEdge = o.progress + CAR_LENGTH_FRACTION;
+    return leadingEdge >= COLLISION_WINDOW_START && o.progress <= 1;
+  });
 }
 
 export function getStatus(elapsedMs: number, collided: boolean): ChaseStatus {
