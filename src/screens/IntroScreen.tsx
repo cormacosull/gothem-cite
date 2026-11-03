@@ -70,11 +70,11 @@ const styles = StyleSheet.create({
     minHeight: scale(44),
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: scale(8),
+    marginTop: scale(4),
   },
   skipButtonText: {
     color: colors.textMuted,
-    fontSize: scale(14),
+    fontSize: scale(11),
     fontWeight: '700',
   },
 });

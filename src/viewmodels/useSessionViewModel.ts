@@ -17,16 +17,10 @@ function findNextMission(missions: Mission[], playerId: string | null, currentId
   return found;
 }
 
-function findTakenCharacterIds(players: Player[], playerId: string | null): string[] {
-  return players
-    .filter((p) => p.id !== playerId && p.character)
-    .map((p) => p.character!);
-}
 
 export type SessionPhase =
   | 'entering'
   | 'joining'
-  | 'selecting'
   | 'waiting'
   | 'intro'
   | 'standby'
@@ -47,7 +41,6 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
   const [phase, setPhase] = useState<SessionPhase>('entering');
   const [errorText, setErrorText] = useState('');
   const [players, setPlayers] = useState<Player[]>([]);
-  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [mission, setMission] = useState<Mission | null>(null);
   const [nextMission, setNextMission] = useState<Mission | null>(null);
   const [cityHealth, setCityHealth] = useState(0);
@@ -71,7 +64,7 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     for (const message of newMessages) {
       if (message.type === 'join_ack') {
         playerIdRef.current = message.playerId;
-        setPhase('selecting');
+        setPhase('waiting');
         setPlayers(message.state.players);
       }
       if (message.type === 'join_error') {
@@ -87,14 +80,7 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
           setPhase('intro');
         } else if (!started) {
           startedRef.current = false;
-          // Reconnecting mid-selection shouldn't force a re-pick
-          const me = message.state.players.find((p) => p.id === playerIdRef.current);
-          if (me?.character) {
-            setSelectedCharacterId(me.character);
-            setPhase('waiting');
-          } else {
-            setPhase('selecting');
-          }
+          setPhase('waiting');
         }
         if (started) {
           const next = findNextMission(message.state.missions, playerIdRef.current, mission?.id ?? null);
@@ -175,12 +161,6 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     socket?.send({ type: 'join_session', code, playerName: name.trim() });
   }
 
-  function selectCharacter(characterId: string) {
-    if (findTakenCharacterIds(players, playerIdRef.current).includes(characterId)) return;
-    setSelectedCharacterId(characterId);
-    socket?.send({ type: 'select_character', characterId });
-    setPhase('waiting');
-  }
 
   function finishIntro() {
     setPhase('standby');
@@ -210,9 +190,6 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     isConnected,
     join,
     canJoin: isConnected && code.length === 4 && !!name.trim(),
-    selectedCharacterId,
-    takenCharacterIds: findTakenCharacterIds(players, playerIdRef.current),
-    selectCharacter,
     finishIntro,
     mission,
     nextMission,

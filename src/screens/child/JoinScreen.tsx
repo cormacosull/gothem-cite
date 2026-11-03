@@ -10,8 +10,6 @@ import {
 import { useSessionViewModel } from '../../viewmodels/useSessionViewModel';
 import { CodeInput } from '../../components/CodeInput';
 import { PrimaryButton } from '../../components/PrimaryButton';
-import { CharacterCard } from '../../components/CharacterCard';
-import { CHARACTERS } from '../../lib/characters';
 import { IntroScreen } from '../IntroScreen';
 import { StandbyScreen } from './StandbyScreen';
 import { InterludeScreen } from './InterludeScreen';
@@ -37,9 +35,6 @@ export function JoinScreen({ onGameStart }: Props) {
     isConnected,
     join,
     canJoin,
-    selectedCharacterId,
-    takenCharacterIds,
-    selectCharacter,
     finishIntro,
     mission,
     nextMission,
@@ -58,11 +53,7 @@ export function JoinScreen({ onGameStart }: Props) {
       )}
       {phase !== 'intro' && phase !== 'standby' && phase !== 'interlude' && phase !== 'gameOver' && (
         <Text style={styles.tagline}>
-          {phase === 'selecting'
-            ? 'Pick your hero'
-            : phase === 'waiting'
-              ? 'Standing by for the signal'
-              : 'Answer the call. Save the city.'}
+          {phase === 'waiting' ? 'Standing by for the signal' : 'Answer the call. Save the city.'}
         </Text>
       )}
 
@@ -96,21 +87,6 @@ export function JoinScreen({ onGameStart }: Props) {
         </View>
       )}
 
-      {phase === 'selecting' && (
-        <View style={styles.form}>
-          <View style={styles.characterGrid}>
-            {CHARACTERS.map((c) => (
-              <CharacterCard
-                key={c.id}
-                character={c}
-                selected={c.id === selectedCharacterId}
-                disabled={takenCharacterIds.includes(c.id)}
-                onPress={() => selectCharacter(c.id)}
-              />
-            ))}
-          </View>
-        </View>
-      )}
 
       {phase === 'intro' && <IntroScreen players={players} onFinish={finishIntro} />}
 
@@ -127,7 +103,7 @@ export function JoinScreen({ onGameStart }: Props) {
       )}
 
       {phase === 'standby' && !mission && (
-        <StandbyScreen selectedCharacterId={selectedCharacterId} />
+        <StandbyScreen />
       )}
 
       {phase === 'interlude' && (
@@ -191,12 +167,6 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 340,
     alignItems: 'center',
-  },
-  characterGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: spacing.md,
   },
   label: {
     fontFamily: 'Nunito_700Bold',

@@ -13,7 +13,6 @@ export interface Player {
   name: string;
   connected: boolean;
   mission?: MissionType;
-  character?: string;
 }
 
 export interface Mission {
@@ -38,9 +37,8 @@ export type ClientMessage =
   | { type: 'start_tutorial' }
   | { type: 'tutorial_complete' } 
   | { type: 'mission_result'; missionId: string; success: boolean }
-  | { type: 'reconnect_session'; code: string; role: 'parent' | 'child'; playerId?: string }
-  | { type: 'select_character'; characterId: string };
-
+  | { type: 'reconnect_session'; code: string; role: 'parent' | 'child'; playerId?: string };
+  
 // ---- Server -> Client ----
 export type ServerMessage =
   | { type: 'session_created'; code: string; state: GameState }
