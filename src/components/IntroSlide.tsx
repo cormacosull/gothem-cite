@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, radii, inkShadow } from '../theme/tokens';
+import { colors, spacing } from '../theme/tokens';
 
 interface Props {
   heading: string;
@@ -11,7 +11,6 @@ interface Props {
 export function IntroSlide({ heading, body }: Props) {
   return (
     <View style={styles.container}>
-      <View style={styles.artPlaceholder} />
       <Text style={styles.heading}>{heading}</Text>
       <Text style={styles.body}>{body}</Text>
     </View>
@@ -23,20 +22,10 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  artPlaceholder: {
-    width: '100%',
-    height: 160,
-    backgroundColor: colors.panel,
-    borderWidth: 3,
-    borderColor: colors.inkLine,
-    borderRadius: radii.md,
-    ...inkShadow(3),
-  },
   heading: {
     fontFamily: 'Bangers_400Regular',
     fontSize: 26,
     color: colors.signal,
-    marginTop: spacing.lg,
     textAlign: 'center',
     letterSpacing: 0.5,
   },
