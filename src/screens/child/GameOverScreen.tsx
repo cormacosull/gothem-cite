@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing } from '../../theme/tokens';
+import { colors, spacing, fonts } from '../../theme/tokens';
 
 interface Props {
   result: 'won' | 'lost';
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heading: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: 36,
     color: colors.signal,
     textAlign: 'center',
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     color: colors.alarm,
   },
   body: {
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: fonts.body,
     fontSize: 14,
     lineHeight: 20,
     color: colors.textOnInk,

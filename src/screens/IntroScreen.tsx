@@ -2,7 +2,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useIntroViewModel } from '../viewmodels/useIntroViewModel';
 import { IntroSlide } from '../components/IntroSlide';
 import { PrimaryButton } from '../components/PrimaryButton';
-import { colors, spacing } from '../theme/tokens';
+import { colors, spacing, fonts } from '../theme/tokens';
 import type { Player } from '../lib/protocol';
 import { scale } from '../lib/scale';
 
@@ -75,6 +75,6 @@ const styles = StyleSheet.create({
   skipButtonText: {
     color: colors.textMuted,
     fontSize: scale(14),
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
   },
 });

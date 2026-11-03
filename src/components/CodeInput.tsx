@@ -1,6 +1,6 @@
 import { useRef, type ComponentRef } from 'react';
 import { View, TextInput, StyleSheet, TextInputKeyPressEvent } from 'react-native';
-import { colors, spacing, radii, inkShadow } from '../theme/tokens';
+import { colors, spacing, radii, inkShadow, fonts } from '../theme/tokens';
 
 const LENGTH = 4;
 
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textAlignVertical: 'center',
     fontSize: 28,
-    fontFamily: 'Nunito_800ExtraBold',
+    fontFamily: fonts.bodyExtraBold,
     color: colors.inkLine,
     ...inkShadow(3),
   },

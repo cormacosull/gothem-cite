@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { PrimaryButton } from '../../components/PrimaryButton';
-import { colors, spacing, radii, inkShadow } from '../../theme/tokens';
+import { colors, spacing, radii, inkShadow, fonts } from '../../theme/tokens';
 import type { Player } from '../../lib/protocol';
 
 interface Props {
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   wordmark: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: 48,
     color: colors.signal,
     letterSpacing: 1,
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 0,
   },
   tagline: {
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fonts.bodyBold,
     fontSize: 15,
     color: colors.textOnInk,
     marginTop: spacing.xs,
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fonts.bodyBold,
     fontSize: 14,
     color: colors.textOnInk,
     marginBottom: spacing.sm,
@@ -95,27 +95,27 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   hint: {
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: fonts.body,
     color: colors.textMuted,
     marginTop: spacing.md,
     textAlign: 'center',
     fontSize: 13,
   },
   error: {
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fonts.bodyBold,
     color: colors.alarm,
     marginTop: spacing.md,
     textAlign: 'center',
     fontSize: 13,
   },
   subheading: {
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fonts.bodyBold,
     color: colors.textOnInk,
     marginTop: spacing.lg,
     marginBottom: spacing.xs,
   },
   playerRow: {
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: fonts.body,
     color: colors.textOnInk,
     fontSize: 16,
   },
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     ...inkShadow(3),
   },
   codeBadgeText: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: 28,
     color: colors.signal,
     letterSpacing: 4,

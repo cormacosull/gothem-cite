@@ -1,7 +1,8 @@
 import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
+import { scale } from 'react-native-size-matters';
 import { usePuzzlerViewModel } from '../../../viewmodels/usePuzzlerViewModel';
 import { WORD_LENGTH, MAX_GUESSES, type LetterValue } from './logic';
-import { colors, spacing, radii, inkShadow } from '../../../theme/tokens';
+import { colors, spacing, radii, inkShadow, fonts } from '../../../theme/tokens';
 import bomb from '../../../../assets/puzzler-bomb.png';
 
 const RESULT_COLORS: Record<LetterValue, string> = {
@@ -210,8 +211,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
   },
   title: {
-    fontFamily: 'Bangers_400Regular',
-    fontSize: 40,
+    fontFamily: fonts.titles,
+    fontSize: scale(18),
     color: colors.signal,
     letterSpacing: 1,
     textShadowColor: colors.inkLine,
@@ -219,8 +220,8 @@ const styles = StyleSheet.create({
     textShadowRadius: 0,
   },
   subtitle: {
-    fontFamily: 'Nunito_700Bold',
-    fontSize: 14,
+    fontFamily: fonts.bodyBold,
+    fontSize: scale(6),
     color: colors.textOnInk,
     textAlign: 'center',
   },
@@ -262,8 +263,12 @@ const styles = StyleSheet.create({
     borderColor: colors.signal,
   },
   tileText: {
-    fontFamily: 'Bangers_400Regular',
-    fontSize: 28,
+    width: "100%",
+    height: "100%",
+    textAlign: "center",
+    textAlignVertical: "center",
+    fontFamily: fonts.titles,
+    fontSize: scale(12),
     color: colors.textOnInk,
   },
   messageArea: {
@@ -272,7 +277,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   error: {
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fonts.bodyBold,
     fontSize: 14,
     color: colors.alarm,
   },
@@ -304,12 +309,12 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   keyText: {
-    fontFamily: 'Nunito_800ExtraBold',
-    fontSize: 16,
+    fontFamily: fonts.bodyExtraBold,
+    fontSize: scale(6),
     color: colors.inkLine,
   },
   keyTextSmall: {
-    fontSize: 12,
+    fontSize: scale(5),
   },
   overlay: {
     position: 'absolute',
@@ -333,15 +338,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   overlayTitle: {
-    fontFamily: 'Bangers_400Regular',
-    fontSize: 28,
+    fontFamily: fonts.titles,
+    fontSize: scale(12),
     letterSpacing: 1,
     color: colors.signal,
     textAlign: 'center',
   },
   overlayBody: {
-    fontFamily: 'Nunito_700Bold',
-    fontSize: 14,
+    fontFamily: fonts.bodyBold,
+    fontSize: scale(6),
     color: colors.textOnInk,
     textAlign: 'center',
     marginTop: spacing.xs,
@@ -359,8 +364,8 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   overlayButtonText: {
-    fontFamily: 'Bangers_400Regular',
-    fontSize: 18,
+    fontFamily: fonts.titles,
+    fontSize: scale(8),
     letterSpacing: 1,
     color: colors.ink,
   },
@@ -374,8 +379,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   hudTitles: {
-    fontFamily: 'Nunito_700Bold',
-    fontSize: 12,
+    fontFamily: fonts.bodyBold,
+    fontSize: scale(5),
     textAlign: 'center',
     color: colors.textOnInk,
     fontStyle: 'italic',
@@ -390,9 +395,9 @@ const styles = StyleSheet.create({
   },
   hudItemText: {
     textAlign: 'center',
-    fontWeight: 'bold',
+    fontFamily: fonts.bodyBold,
     fontStyle: 'italic',
-    fontSize: 16,
+    fontSize: scale(7),
   },
   hintButton: {
     width: 90,
@@ -410,8 +415,8 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   hintText: {
-    fontFamily: 'Nunito_800ExtraBold',
-    fontSize: 16,
+    fontFamily: fonts.bodyExtraBold,
+    fontSize: scale(7),
     letterSpacing: 2,
     color: colors.signal,
   },

@@ -1,5 +1,5 @@
 import { Pressable, Text, StyleSheet } from 'react-native';
-import { colors, radii, inkShadow } from '../theme/tokens';
+import { colors, radii, inkShadow, fonts } from '../theme/tokens';
 import type { CharacterOption } from '../lib/characters';
 
 interface Props {
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 1, height: 1 },
   },
   label: {
-    fontFamily: 'Nunito_800ExtraBold',
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 15,
     color: colors.inkLine,
   },

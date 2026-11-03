@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { scale } from '../../lib/scale';
-import { colors } from '../../theme/tokens';
+import { colors, fonts } from '../../theme/tokens';
 import type { GameState } from '../../lib/protocol';
 
 interface Props {
@@ -61,14 +61,14 @@ const styles = StyleSheet.create({
     eyebrow: {
         color: colors.signal,
         fontSize: scale(12),
-        fontWeight: '700',
+        fontFamily: fonts.bodyBold,
         letterSpacing: 1,
         marginBottom: scale(12),
     },
     title: {
         color: colors.resolved,
         fontSize: scale(30),
-        fontWeight: '700',
+        fontFamily: fonts.bodyBold,
         marginBottom: scale(16),
     },
     titleLost: {
@@ -96,6 +96,6 @@ const styles = StyleSheet.create({
     primaryButtonText: {
         color: colors.ink,
         fontSize: scale(16),
-        fontWeight: '700',
+        fontFamily: fonts.bodyBold,
     },
 });
