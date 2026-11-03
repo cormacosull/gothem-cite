@@ -35,8 +35,19 @@ interface Props {
 
 // Placeholder art throughout: plain colored rectangles
 export function ChaseScreen({ onFinish, onContinue }: Props = {}) {
-  const { laneCount, playerLane, obstacles, elapsedMs, survivalMs, status, start, moveLeft, moveRight } =
-    useChaseMissionViewModel({ onFinish });
+  const {
+    laneCount,
+    playerLane,
+    obstacles,
+    elapsedMs,
+    survivalMs,
+    lives,
+    maxLives,
+    status,
+    start,
+    moveLeft,
+    moveRight,
+  } = useChaseMissionViewModel({ onFinish });
 
   // PanResponder is created once and reads the latest handlers through refs
   const moveLeftRef = useRef(moveLeft);
@@ -71,6 +82,15 @@ export function ChaseScreen({ onFinish, onContinue }: Props = {}) {
 
       <View style={styles.board} {...panResponder.panHandlers}>
         <ChaseBackground />
+
+        <View style={styles.livesBadge}>
+          {Array.from({ length: maxLives }, (_, i) => (
+            <Text key={i} style={[styles.heart, i >= lives && styles.heartLost]}>
+              ♥
+            </Text>
+          ))}
+          <Text style={styles.livesLabel}>{`${lives}/${maxLives}`}</Text>
+        </View>
         {Array.from({ length: laneCount }, (_, lane) => (
           <View key={lane} style={styles.lane}>
             {obstacles
@@ -198,6 +218,35 @@ const styles = StyleSheet.create({
   carImage: {
     width: '100%',
     height: '100%',
+  },
+  livesBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 100,
+    backgroundColor: 'rgba(16, 14, 32, 0.6)',
+    borderWidth: 1.5,
+    borderColor: colors.inkLine,
+  },
+  heart: {
+    fontSize: 14,
+    color: colors.alarm,
+    marginRight: 2,
+  },
+  heartLost: {
+    color: colors.textMuted,
+    opacity: 0.5,
+  },
+  livesLabel: {
+    fontFamily: 'Nunito_800ExtraBold',
+    fontSize: 11,
+    color: colors.textOnInk,
+    marginLeft: 2,
   },
   controlHint: {
     fontFamily: 'Nunito_400Regular',
