@@ -10,6 +10,9 @@ const missionLabels: Record<MissionType, string> = {
   bomb: "Bomb threat",
 };
 
+const WIN_CITY_HEALTH = 75;
+const MISSIONS_PER_PLAYER = 3;
+
 function MissionBoard({ state }: { state: GameState }) {
   type AlertLine = {
     status: string;
@@ -66,7 +69,7 @@ function MissionBoard({ state }: { state: GameState }) {
 }
 
 export default function ParentDashboard({ state }: { state: GameState }) {
-  const cityHealth = Math.max(0, Math.min(100, state.cityHealth));
+  const cityHealth = Math.round(Math.max(0, Math.min(100, state.cityHealth)));
 
   return (
     <View style={styles.layout}>
@@ -77,13 +80,24 @@ export default function ParentDashboard({ state }: { state: GameState }) {
         </Text>
       </Pressable>
 
-      <View style={styles.healthTimer}>
+            <View style={styles.healthTimer}>
         <View style={styles.healthHeading}>
           <Text style={styles.healthLabel}>CITY HEALTH</Text>
-          <Text style={styles.healthValue}>{cityHealth}%</Text>
+          <Text style={styles.healthValue}>{cityHealth}% / GOAL {WIN_CITY_HEALTH}%</Text>
         </View>
         <View style={styles.healthTrack}>
-          <View style={[styles.healthFill, { width: `${cityHealth}%` }, cityHealth <= 25 && styles.healthCritical]} />
+          <View style={[styles.healthFill, { width: `${cityHealth}%` }, cityHealth < WIN_CITY_HEALTH && styles.healthBelowGoal]} />
+          <View style={[styles.healthGoal, { left: `${WIN_CITY_HEALTH}%` }]} />
+        </View>
+        <View style={styles.heroProgress}>
+          {state.players.map((player) => {
+            const done = state.missions.filter((m) => m.playerId === player.id && m.status !== 'active').length;
+            return (
+              <Text key={player.id} style={styles.heroProgressText}>
+                {player.name}: {done}/{MISSIONS_PER_PLAYER}
+              </Text>
+            );
+          })}
         </View>
       </View>
 
@@ -167,8 +181,25 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: colors.resolved,
   },
-  healthCritical: {
-    backgroundColor: colors.alarm,
+  healthBelowGoal: {
+    backgroundColor: colors.signal,
+  },
+  healthGoal: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: scale(2),
+    backgroundColor: colors.paper,
+  },
+  heroProgress: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: scale(5),
+  },
+  heroProgressText: {
+    color: colors.textOnInk,
+    fontSize: scale(9),
+    fontWeight: "bold",
   },
   topBar: {
     width: "80%",

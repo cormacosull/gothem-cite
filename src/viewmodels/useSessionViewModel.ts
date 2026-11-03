@@ -2,15 +2,19 @@ import { useEffect, useRef, useState } from 'react';
 import { useGameSocket } from '../lib/useGameSocket';
 import type { Player, Mission } from '../lib/protocol';
 
+// Pause between two missions in seconds
+const INTERLUDE_SECONDS = 6;
+
 function findOwnMission(missions: Mission[], playerId: string | null): Mission | null {
   if (!playerId) return null;
   return missions.find((m) => m.playerId === playerId && m.status === 'active') ?? null;
 }
 
-function adoptMissionIfFound(current: Mission | null, missions: Mission[], playerId: string | null): Mission | null {
+// The player's active mission on the server, unless it's the one already on screen
+function findNextMission(missions: Mission[], playerId: string | null, currentId: string | null): Mission | null {
   const found = findOwnMission(missions, playerId);
-  if (!found) return current;
-  return current?.id === found.id ? current : found;
+  if (!found || found.id === currentId) return null;
+  return found;
 }
 
 function findTakenCharacterIds(players: Player[], playerId: string | null): string[] {
@@ -26,6 +30,8 @@ export type SessionPhase =
   | 'waiting'
   | 'intro'
   | 'standby'
+  | 'interlude'
+  | 'gameOver'
   | 'error';
 
 interface Options {
@@ -45,6 +51,11 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [mission, setMission] = useState<Mission | null>(null);
+  const [nextMission, setNextMission] = useState<Mission | null>(null);
+  const [cityHealth, setCityHealth] = useState(0);
+  const [healthBeforeMission, setHealthBeforeMission] = useState(0);
+  const [interludeSecondsLeft, setInterludeSecondsLeft] = useState(0);
+  const [gameResult, setGameResult] = useState<'won' | 'lost' | null>(null);
   const playerIdRef = useRef<string | null>(null);
 
   const onGameStartRef = useRef(onGameStart);
@@ -71,6 +82,7 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     }
     if (lastMessage.type === 'reconnect_ack' && lastMessage.role === 'child') {
       setPlayers(lastMessage.state.players);
+      setCityHealth(lastMessage.state.cityHealth);
       const started = lastMessage.state.status !== 'lobby';
       if (started && !startedRef.current) {
         startedRef.current = true;
@@ -87,8 +99,17 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
         }
       }
       if (started) {
-        const missions = lastMessage.state.missions;
-        setMission((current) => adoptMissionIfFound(current, missions, playerIdRef.current));
+        const next = findNextMission(lastMessage.state.missions, playerIdRef.current, mission?.id ?? null);
+        if (next) setNextMission(next);
+      }
+      // Starting the game should skip the intro on all devices
+      if (lastMessage.state.status === 'playing') {
+        setPhase((current) => (current === 'intro' ? 'standby' : current));
+      }
+      // Reconnecting after the game already ended
+      if (lastMessage.state.status === 'won' || lastMessage.state.status === 'lost') {
+        setGameResult(lastMessage.state.status);
+        setPhase('gameOver');
       }
     }
     if (lastMessage.type === 'reconnect_error') {
@@ -97,9 +118,10 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
       setErrorText(lastMessage.reason);
     }
     if (lastMessage.type === 'assign_mission') {
-      setMission(lastMessage.mission);
+      setNextMission(lastMessage.mission);
     }
     if (lastMessage.type === 'state_update') {
+      setCityHealth(lastMessage.state.cityHealth);
       const started = lastMessage.state.status !== 'lobby';
       if (started && !startedRef.current) {
         startedRef.current = true;
@@ -109,9 +131,17 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
         setPlayers(lastMessage.state.players);
       }
       if (started) {
-        const missions = lastMessage.state.missions;
-        setMission((current) => adoptMissionIfFound(current, missions, playerIdRef.current));
+        const next = findNextMission(lastMessage.state.missions, playerIdRef.current, mission?.id ?? null);
+        if (next) setNextMission(next);
       }
+      // Starting the game should skip the intro on all devices
+      if (lastMessage.state.status === 'playing') {
+        setPhase((current) => (current === 'intro' ? 'standby' : current));
+      }
+    }
+    if (lastMessage.type === 'game_over') {
+      setGameResult(lastMessage.result);
+      setPhase('gameOver');
     }
   }, [lastMessage]);
 
@@ -120,6 +150,25 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
       socket?.send({ type: 'reconnect_session', code, role: 'child', playerId: playerIdRef.current });
     }
   }, [isConnected, code, socket]);
+
+  // Brings in the next mission once the player is back on standby
+  useEffect(() => {
+    if (phase !== 'standby' || mission || !nextMission) return;
+    setMission(nextMission);
+    setNextMission(null);
+    setHealthBeforeMission(cityHealth);
+  }, [phase, mission, nextMission, cityHealth]);
+
+  // Interlude countdown
+  useEffect(() => {
+    if (phase !== 'interlude' || !nextMission) return;
+    if (interludeSecondsLeft <= 0) {
+      setPhase('standby');
+      return;
+    }
+    const timer = setTimeout(() => setInterludeSecondsLeft((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [phase, nextMission, interludeSecondsLeft]);
 
   function join() {
     if (code.length !== 4 || !name.trim()) return;
@@ -144,8 +193,11 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     socket?.send({ type: 'mission_result', missionId: mission.id, success });
   }
 
-  function returnToStandby() {
+  
+  function continueAfterMission() {
     setMission(null);
+    setInterludeSecondsLeft(INTERLUDE_SECONDS);
+    setPhase('interlude');
   }
 
   return {
@@ -164,7 +216,12 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     selectCharacter,
     finishIntro,
     mission,
+    nextMission,
     reportMissionResult,
-    returnToStandby,
+    continueAfterMission,
+    cityHealth,
+    healthChange: cityHealth - healthBeforeMission,
+    interludeSecondsLeft,
+    gameResult,
   };
 }

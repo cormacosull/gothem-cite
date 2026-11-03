@@ -14,6 +14,8 @@ import { CharacterCard } from '../../components/CharacterCard';
 import { CHARACTERS } from '../../lib/characters';
 import { IntroScreen } from '../IntroScreen';
 import { StandbyScreen } from './StandbyScreen';
+import { InterludeScreen } from './InterludeScreen';
+import { GameOverScreen } from './GameOverScreen';
 import { ChaseScreen } from './chase/ChaseScreen';
 import { FireScreen } from './fire/FireScreen';
 import { PuzzlerScreen } from './puzzler/PuzzlerScreen';
@@ -41,14 +43,21 @@ export function JoinScreen({ onGameStart }: Props) {
     selectCharacter,
     finishIntro,
     mission,
+    nextMission,
     reportMissionResult,
-    returnToStandby,
+    continueAfterMission,
+    cityHealth,
+    healthChange,
+    interludeSecondsLeft,
+    gameResult,
   } = useSessionViewModel({ onGameStart });
 
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Text style={styles.wordmark}>Gothem Cité</Text>
-      {phase !== 'intro' && phase !== 'standby' && (
+      {Platform.OS == 'web' && (
+        <Text style={styles.wordmark}>Gothem Cité</Text>
+      )}
+      {phase !== 'intro' && phase !== 'standby' && phase !== 'interlude' && phase !== 'gameOver' && (
         <Text style={styles.tagline}>
           {phase === 'selecting'
             ? 'Pick your hero'
@@ -107,19 +116,32 @@ export function JoinScreen({ onGameStart }: Props) {
       {phase === 'intro' && <IntroScreen players={players} onFinish={finishIntro} />}
 
       {phase === 'standby' && mission?.type === 'chase' && (
-        <ChaseScreen onFinish={reportMissionResult} onContinue={returnToStandby} />
+        <ChaseScreen onFinish={reportMissionResult} onContinue={continueAfterMission} />
       )}
 
       {phase === 'standby' && mission?.type === 'fire' && (
-        <FireScreen onFinish={reportMissionResult} onContinue={returnToStandby} />
+        <FireScreen onFinish={reportMissionResult} onContinue={continueAfterMission} />
       )}
 
       {phase === 'standby' && mission?.type === 'bomb' && (
-        <PuzzlerScreen onFinish={reportMissionResult} onContinue={returnToStandby} />
+        <PuzzlerScreen onFinish={reportMissionResult} onContinue={continueAfterMission} />
       )}
 
       {phase === 'standby' && !mission && (
         <StandbyScreen selectedCharacterId={selectedCharacterId} />
+      )}
+
+      {phase === 'interlude' && (
+        <InterludeScreen
+          cityHealth={cityHealth}
+          healthChange={healthChange}
+          nextMission={nextMission}
+          secondsLeft={interludeSecondsLeft}
+        />
+      )}
+
+      {phase === 'gameOver' && gameResult && (
+        <GameOverScreen result={gameResult} cityHealth={cityHealth} />
       )}
 
       {phase === 'waiting' && (
