@@ -1,8 +1,8 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
 import { usePuzzlerViewModel } from '../../../viewmodels/usePuzzlerViewModel';
 import { WORD_LENGTH, MAX_GUESSES, type LetterValue } from './logic';
-import { colors, spacing, radii } from '../../../theme/tokens';
-
+import { colors, spacing, radii, inkShadow } from '../../../theme/tokens';
+import bomb from '../../../../assets/puzzler-bomb.png';
 
 const RESULT_COLORS: Record<LetterValue, string> = {
   correct: colors.resolved,
@@ -115,9 +115,12 @@ export function PuzzlerScreen({ onFinish, onContinue }: Props = {}) {
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.title}>The Puzzler</Text>
-      <Text style={styles.subtitle}>Crack the 5-letter code to defuse the bomb</Text>
-      
+      <Image source={bomb} style={styles.backgroundImage} resizeMode="cover" />
+      <View style={styles.textInformation}>
+        <Text style={styles.title}>The Puzzler</Text>
+        <Text style={styles.subtitle}>Crack the 5-letter code to defuse the bomb</Text>
+      </View>
+
       <View style={styles.hud}>
         <View style={styles.hudItem}>
           <Text style={styles.hudTitles}>Time</Text>
@@ -221,15 +224,30 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito_700Bold',
     fontSize: 14,
     color: colors.textOnInk,
-    marginBottom: spacing.md,
     textAlign: 'center',
   },
   board: {
     marginBottom: spacing.sm,
+    padding: spacing.sm,
+    borderRadius: radii.md,
+    borderWidth: 3,
+    borderColor: colors.inkLine,
+    backgroundColor: 'rgba(11, 18, 32, 0.8)',
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'center',
+  },
+  textInformation: {
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    borderRadius: radii.md,
+    borderWidth: 3,
+    borderColor: colors.inkLine,
+    backgroundColor: 'rgba(11, 18, 32, 0.8)',
+    ...inkShadow(3),
   },
   tile: {
     width: 52,
@@ -398,5 +416,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     letterSpacing: 2,
     color: colors.signal,
+  },
+    backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0.35,
   },
 });
