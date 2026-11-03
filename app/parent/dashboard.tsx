@@ -1,8 +1,13 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
 import { scale } from '../../src/lib/scale';
 import { colors } from '../../src/theme/tokens';
 import { router } from 'expo-router';
 import type { GameState, MissionType } from '../../src/lib/protocol';
+import firePreview from '../../assets/previews/fire.png';
+import chasePreview from '../../assets/previews/chase.png';
+import bombPreview from '../../assets/previews/bomb.png';
+import dashboardBackground from '../../assets/dashboard-bg.png';
+import { VILLAINS } from '../../src/lib/villains';
 
 const missionLabels: Record<MissionType, string> = {
   fire: "Fire response",
@@ -10,6 +15,13 @@ const missionLabels: Record<MissionType, string> = {
   bomb: "Bomb threat",
 };
 
+const missionPreviews: Record<MissionType, number> = {
+  fire: firePreview,
+  chase: chasePreview,
+  bomb: bombPreview,
+};
+
+const STARTING_CITY_HEALTH = 50;
 const WIN_CITY_HEALTH = 75;
 const MISSIONS_PER_PLAYER = 3;
 
@@ -26,11 +38,13 @@ function MissionBoard({ state }: { state: GameState }) {
     { key: 'problem', label: 'Problem', width: '35%' },
     { key: 'playerDispatched', label: 'Dispatched', width: '25%' },
   ];
-  const alerts = state.missions.map((mission): AlertLine => {
+  const missions = [...state.missions].reverse();
+  const alerts = missions.map((mission): AlertLine => {
     const player = state.players.find((candidate) => candidate.id === mission.playerId);
+    const villain = VILLAINS.find((candidate) => candidate.id === mission.type);
     return {
       status: mission.status === 'success' ? 'Resolved' : mission.status === 'failed' ? 'Failed' : 'Unresolved',
-      perpetrator: '-',
+      perpetrator: villain?.name ?? '-',
       problem: missionLabels[mission.type],
       playerDispatched: player?.name ?? 'Unknown hero',
     };
@@ -51,8 +65,7 @@ function MissionBoard({ state }: { state: GameState }) {
         {alerts.length === 0 ? (
           <Text style={styles.emptyMessage}>No missions have been assigned.</Text>
         ) : alerts.map((alert, index) => (
-          <View key={state.missions[index].id} style={[styles.alertLine, index % 2 === 0 && styles.alertLineAlternate]}>
-            {columns.map((column) => (
+          <View key={missions[index].id} style={[styles.alertLine, index % 2 === 0 && styles.alertLineAlternate]}>  {columns.map((column) => (
               <Text key={column.key} style={[styles.alertLineCol, { width: column.width }]}>
                 {column.key === 'status' ? (
                   <Text style={alert.status === 'Resolved' ? styles.statusResolved : alert.status === 'Failed' ? styles.statusFailed : styles.statusOpen}>
@@ -73,6 +86,7 @@ export default function ParentDashboard({ state }: { state: GameState }) {
 
   return (
     <View style={styles.layout}>
+      <Image source={dashboardBackground} style={styles.backgroundImage} resizeMode="cover" />
       <Pressable style={styles.backButton}
       onPress={() => router.back()}>
         <Text style={styles.buttonText}>
@@ -80,31 +94,40 @@ export default function ParentDashboard({ state }: { state: GameState }) {
         </Text>
       </Pressable>
 
-            <View style={styles.healthTimer}>
+      <View style={styles.healthTimer}>
         <View style={styles.healthHeading}>
           <Text style={styles.healthLabel}>CITY HEALTH</Text>
-          <Text style={styles.healthValue}>{cityHealth}% / GOAL {WIN_CITY_HEALTH}%</Text>
+          <Text style={styles.healthValue}>{cityHealth}%</Text>
         </View>
         <View style={styles.healthTrack}>
-          <View style={[styles.healthFill, { width: `${cityHealth}%` }, cityHealth < WIN_CITY_HEALTH && styles.healthBelowGoal]} />
-          <View style={[styles.healthGoal, { left: `${WIN_CITY_HEALTH}%` }]} />
-        </View>
-        <View style={styles.heroProgress}>
-          {state.players.map((player) => {
-            const done = state.missions.filter((m) => m.playerId === player.id && m.status !== 'active').length;
-            return (
-              <Text key={player.id} style={styles.heroProgressText}>
-                {player.name}: {done}/{MISSIONS_PER_PLAYER}
-              </Text>
-            );
-          })}
+          <View
+            style={[
+              styles.healthFill,
+              { width: `${cityHealth}%` },
+              cityHealth < WIN_CITY_HEALTH && styles.healthBelowGoal,
+              cityHealth < STARTING_CITY_HEALTH && styles.healthCritical,
+            ]}
+          />
         </View>
       </View>
 
       <View style={styles.topBar}>
-        <View style={[styles.cameraBox, {backgroundColor:"green"}]} />
-        <View style={[styles.cameraBox, {backgroundColor:"white"}]} />
-        <View style={[styles.cameraBox, {backgroundColor:"orange"}]} />
+        {state.players.map((player) => {
+          const mission = state.missions.find((m) => m.playerId === player.id && m.status === 'active');
+          const done = state.missions.filter((m) => m.playerId === player.id && m.status !== 'active').length;
+          return (
+            <View key={player.id} style={styles.camera}>
+              <View style={styles.cameraBox}>
+                {mission ? (
+                  <Image source={missionPreviews[mission.type]} style={styles.cameraImage} resizeMode="cover" />
+                ) : (
+                  <Text style={styles.cameraEmpty}>✔ Done</Text>
+                )}
+              </View>
+              <Text style={styles.cameraName}>{player.name} · {done}/{MISSIONS_PER_PLAYER}</Text>
+            </View>
+          );
+        })}
       </View>
 
       <View style={styles.bottomBar}>
@@ -127,22 +150,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "column",
   },
+  backgroundImage: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    opacity: 0.35,
+  },
   backButton:{
     position: "absolute",
     top: scale(5),
     right: scale(5),
-    width: scale(30),
-    height: scale(30),
+    width: scale(22),
+    height: scale(22),
     borderRadius: scale(5),
-    borderWidth: scale(3),
+    borderWidth: scale(2),
     borderColor: colors.alarm,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.alarm,
     justifyContent: "center",
     alignItems: "center",
   },
   buttonText:{
-    fontSize: scale(25),
-    color: colors.ink,
+    fontSize: scale(16),
+    fontWeight: "bold",
+    color: colors.paper,
     textAlign: "center",
   },
   healthTimer: {
@@ -184,44 +218,49 @@ const styles = StyleSheet.create({
   healthBelowGoal: {
     backgroundColor: colors.signal,
   },
-  healthGoal: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    width: scale(2),
-    backgroundColor: colors.paper,
-  },
-  heroProgress: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: scale(5),
-  },
-  heroProgressText: {
-    color: colors.textOnInk,
-    fontSize: scale(9),
-    fontWeight: "bold",
+  healthCritical: {
+    backgroundColor: colors.alarm,
   },
   topBar: {
     width: "80%",
     height: "37.5%",
-    backgroundColor: "grey",
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    borderRadius: scale(20),
-    borderColor: "black",
-    borderWidth: scale(4),
+  },
+  camera: {
+    width: "30%",
+    height: "100%",
+    alignItems: "center",
   },
   cameraBox: {
-    width: scale(145),
-    height: scale(120),
-    maxWidth: "30%",
+    width: "100%",
+    flex: 1,
     borderRadius: scale(20),
     borderColor: "black",
     borderBottomWidth: scale(15),
     borderTopWidth: scale(15),
     borderRightWidth: scale(6),
     borderLeftWidth: scale(6),
+    backgroundColor: colors.ink,
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cameraImage: {
+    width: "100%",
+    height: "100%",
+  },
+  cameraEmpty: {
+    color: colors.resolved,
+    fontSize: scale(12),
+    fontWeight: "bold",
+  },
+  cameraName: {
+    color: colors.textOnInk,
+    fontSize: scale(11),
+    fontWeight: "bold",
+    marginTop: scale(4),
   },
   bottomBar: {
     width: "80%",
@@ -270,7 +309,7 @@ const styles = StyleSheet.create({
     width: "30%",
   },
   statusOpen: {
-    color: colors.alarm,
+    color: colors.signal,
     fontWeight: "bold",
   },
   statusResolved: {
