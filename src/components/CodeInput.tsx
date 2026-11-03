@@ -1,5 +1,5 @@
-import { useRef } from 'react';
-import { View, TextInput, StyleSheet, NativeSyntheticEvent, TextInputKeyPressEventData } from 'react-native';
+import { useRef, type ComponentRef } from 'react';
+import { View, TextInput, StyleSheet, TextInputKeyPressEvent } from 'react-native';
 import { colors, spacing, radii, inkShadow } from '../theme/tokens';
 
 const LENGTH = 4;
@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function CodeInput({ value, onChange, editable = true }: Props) {
-  const inputs = useRef<Array<TextInput | null>>([]);
+  const inputs = useRef<Array<ComponentRef<typeof TextInput> | null>>([]);
   const digits = Array.from({ length: LENGTH }, (_, i) => value[i] ?? '');
 
   function handleChangeDigit(text: string, index: number) {
@@ -26,7 +26,7 @@ export function CodeInput({ value, onChange, editable = true }: Props) {
     if (index < LENGTH - 1) inputs.current[index + 1]?.focus();
   }
 
-  function handleKeyPress(e: NativeSyntheticEvent<TextInputKeyPressEventData>, index: number) {
+  function handleKeyPress(e: TextInputKeyPressEvent, index: number) {
     if (e.nativeEvent.key === 'Backspace' && !digits[index] && index > 0) {
       inputs.current[index - 1]?.focus();
     }

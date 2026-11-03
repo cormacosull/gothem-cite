@@ -74,7 +74,7 @@ export default function ParentDashboard({ state }: { state: GameState }) {
   return (
     <View style={styles.layout}>
       <Pressable style={styles.backButton}
-      onPress={router.back}>
+      onPress={() => router.back()}>
         <Text style={styles.buttonText}>
           X
         </Text>
