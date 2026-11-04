@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
         fontFamily: fonts.bodyBold,
     },
     skipButton: {
-        minHeight: scale(44),
+        minHeight: scale(32),
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: scale(8),
