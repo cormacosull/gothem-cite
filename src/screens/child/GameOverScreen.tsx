@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heading: {
-    fontFamily: fonts.titles,
+    fontFamily: fonts.bodyBold,
     fontSize: 36,
     color: colors.signal,
     textAlign: 'center',

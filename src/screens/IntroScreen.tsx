@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   skipButton: {
-    minHeight: scale(44),
+    minHeight: scale(28),
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: scale(4),

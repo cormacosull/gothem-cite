@@ -12,7 +12,7 @@ export default function RoleSelectScreen() {
       <View style={styles.buttons}>
         <PrimaryButton label="Mission control" onPress={() => router.push('/parent')} />
         <View style={{ height: spacing.md }} />
-        <PrimaryButton label="I'm a hero" onPress={() => router.push('/child/puzzler')} />
+        <PrimaryButton label="I'm a hero" onPress={() => router.push('/child')} />
       </View>
     </View>
   );
