@@ -26,6 +26,13 @@ export const radii = {
   md: 8,
 } as const;
 
+export const fonts = {
+  titles: "Bangers_400Regular",
+  bodyBold : 'Nunito_700Bold',
+  bodyExtraBold: 'Nunito_800ExtraBold',
+  body : "Nunito_400Regular"
+} as const;
+
 //comic style hard shadow
 export const inkShadow = (offset: number) => ({
   shadowColor: colors.inkLine,

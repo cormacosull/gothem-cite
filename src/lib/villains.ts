@@ -1,4 +1,4 @@
-//villains for the intro fugitives slide, same as the table in PRODUCT_SPEC.md
+//villains for the intro fugitives slide
 
 import type { MissionType } from './protocol';
 
