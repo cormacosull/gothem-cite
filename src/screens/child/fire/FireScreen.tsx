@@ -161,7 +161,6 @@ export function FireScreen({ onFinish, onContinue }: Props = {}) {
         </View>
 
         <View style={styles.mapStage} onLayout={measureMapStage}>
-          {/* {mapWidth > 0 && ( */}
             <View style={[styles.mapFrame, {width: mapWidth + MAP_BORDER_WIDTH * 2, height: mapHeight + MAP_BORDER_WIDTH * 2}]}>
               <View style={styles.mapSurface}>
                 <Image source={apartments} style={styles.mapImage} resizeMode="contain" />
@@ -218,7 +217,6 @@ export function FireScreen({ onFinish, onContinue }: Props = {}) {
                 </View>
               )}
             </View>
-          {/* )} */}
         </View>
       </View>
     </View>
@@ -619,10 +617,6 @@ const styles = StyleSheet.create({
     height: "100%",
     justifyContent: "space-between",
     alignItems: "center",
-    // borderWidth: scale(1),
-    // borderColor: "silver",
-    // borderRadius: radii.md,
-
   },
   //hud info
   hud: {

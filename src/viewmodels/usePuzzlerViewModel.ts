@@ -103,7 +103,7 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
     setCurrentGuess('');
   }
 
-  // Reveals the first letter (left to right) that hasn't been found yet, up to MAX_HINTS times
+  // Reveals the first letter that hasn't been found yet
   function revealHint() {
     if (status !== 'playing' || hintIndexes.length >= MAX_HINTS || nextHintIndex === null) return;
     setHintIndexes([...hintIndexes, nextHintIndex]);

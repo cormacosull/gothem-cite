@@ -5,8 +5,7 @@ type StatusListener = (connected: boolean) => void;
 
 const MAX_RECONNECT_DELAY_MS = 10000;
 
-// Thin wrapper around React Native's built-in WebSocket global — no extra
-// package needed on the client side, unlike the server.
+//small wrapper around react native's WebSocket, no extra package needed
 export class GameSocket {
   private ws: WebSocket | null = null;
   private messageListeners = new Set<MessageListener>();
@@ -22,7 +21,7 @@ export class GameSocket {
     this.open();
   }
 
-  // Forces immediate reconnect attempt, bypassing the current backoff wait - called when the app comes back to the foreground
+  //reconnect now and skip the backoff, used when the app comes back to the foreground
   reconnectNow() {
     if (this.manuallyClosed) return;
     if (this.ws?.readyState === WebSocket.OPEN || this.ws?.readyState === WebSocket.CONNECTING) return;
@@ -73,7 +72,7 @@ export class GameSocket {
     }
   }
 
-  // Both return an unsubscribe function.
+  //both return an unsubscribe function
   onMessage(listener: MessageListener) {
     this.messageListeners.add(listener);
     return () => this.messageListeners.delete(listener);

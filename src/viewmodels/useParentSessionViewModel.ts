@@ -28,7 +28,7 @@ export function useParentSessionViewModel({ onGameStart }: Options = {}) {
     onGameStartRef.current = onGameStart;
   });
 
-  // Prevent duplicate navigations
+  //prevent duplicate navigations
   const startedRef = useRef(false);
 
   useEffect(() => {

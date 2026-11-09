@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     ...inkShadow(4),
   },
   pressed: {
-    // pressed state "pushes" the button into its own shadow, comic-panel style
+    //pressed state pushes the button into its shadow
     transform: [{ translateX: 3 }, { translateY: 3 }],
     shadowOffset: { width: 1, height: 1 },
   },

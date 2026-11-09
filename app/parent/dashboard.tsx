@@ -299,15 +299,6 @@ const styles = StyleSheet.create({
     fontSize: scale(10),
     color: "white",
   },
-  statusColumn: {
-    width: "25%",
-  },
-  problemColumn: {
-    width: "45%",
-  },
-  playerColumn: {
-    width: "30%",
-  },
   statusOpen: {
     color: colors.signal,
     fontWeight: "bold",

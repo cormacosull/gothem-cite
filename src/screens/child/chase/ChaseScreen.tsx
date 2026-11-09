@@ -33,7 +33,7 @@ interface Props {
   onContinue?: () => void;
 }
 
-// Placeholder art throughout: plain colored rectangles
+
 export function ChaseScreen({ onFinish, onContinue }: Props = {}) {
   const {
     laneCount,

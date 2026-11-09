@@ -1,8 +1,5 @@
-// ViewModel for the post-character-select intro sequence: a handful of
-// lore slides (the villains, the team, the city meter, the mission types)
-// that auto-advance, with the option to go back and forward, and can be skipped. 
-// Owns the slide index and the advance timer; the View (IntroScreen) just 
-// renders whatever slide this returns and calls `skip()` on user input.
+//intro slides after character select, auto advance, can go back/forward or skip
+//owns the slide index and timer, IntroScreen just renders it
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Player } from '../lib/protocol';
@@ -52,7 +49,7 @@ function buildSlides(players: Player[]): IntroSlideContent[] {
 
 interface Options {
   players: Player[];
-  // Called once the last slide's timer runs out, or Skip is pressed.
+  //called when the last slide ends or on skip
   onFinish: () => void;
 }
 
@@ -65,10 +62,8 @@ export function useIntroViewModel({ players, onFinish }: Options) {
     onFinishRef.current = onFinish;
   });
 
-  // Skip and "the last slide's timer ran out" are two separate paths to
-  // the same finish — without this guard, pressing Skip doesn't stop the
-  // still-running timer underneath it, which fires onFinish a second time
-  // once it later reaches the end on its own.
+  //skip doesn't stop the timer underneath
+  //without this guard onFinish fires a second time when it runs out
   const finishedRef = useRef(false);
   function finish() {
     if (finishedRef.current) return;

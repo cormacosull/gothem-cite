@@ -1,6 +1,4 @@
-// Static villain roster for the intro's "Fugitives" slide — mirrors the
-// Villain/Mission table in PRODUCT_SPEC.md. Distinct from characters.ts,
-// which is the player's own hero pick, not an antagonist.
+//villains for the intro fugitives slide, same as the table in PRODUCT_SPEC.md
 
 import type { MissionType } from './protocol';
 

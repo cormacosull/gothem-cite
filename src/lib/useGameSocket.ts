@@ -19,7 +19,7 @@ export function useGameSocket() {
     });
     const unsubStatus = socket.onStatusChange(setIsConnected);
 
-    // A backgrounded app socket tends to die quietly; retry as soon as the app is active again 
+    //backgrounded sockets die quietly, retry when the app is active again
     const appStateSub = AppState.addEventListener('change', (state) => {
       if (state === 'active') socket.reconnectNow();
     });

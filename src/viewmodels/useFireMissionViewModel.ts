@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-// Keep whatever path your project already uses to import logic.ts.
+
 import {
   FIRE_LOCATIONS,
   GAME_CONFIG,

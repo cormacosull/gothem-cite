@@ -12,10 +12,8 @@ import ResultScreen from '../../src/screens/parent/ResultScreen';
 export default function ParentDashboardRoute() {
   const { state, error, startTutorial, completeTutorial, startNewSession } = useParentSessionViewModel();
 
-  // Local only — tracks whether *this* device has played the lore intro for
-  // the current tutorial, same as every child does independently. Both see
-  // it starting from the same 'tutorial' broadcast, so they stay in sync
-  // without the server needing to know or care who's seen it.
+  //local only, did this device play the intro yet
+  //both devices start from the same tutorial broadcast so the server doesn't track it
   const [introSeen, setIntroSeen] = useState(false);
   useEffect(() => {
     if (state?.status === 'lobby') setIntroSeen(false);
@@ -43,7 +41,6 @@ switch (state.status) {
     case 'lost':
       return <ResultScreen state={state} onPlayAgain={startNewSession} />;
     default:
-      console.log("other screen: ", state.status)
       return;
   }
 }

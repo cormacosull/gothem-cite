@@ -1,5 +1,4 @@
-// Process entry point. Wiring lives in infrastructure/websocketServer.ts;
-// this file just reads config and starts it.
+//starts the server, the wiring is in infrastructure/websocketServer.ts
 
 import { startWebSocketServer } from './infrastructure/websocketServer';
 

@@ -7,11 +7,11 @@ import lostBackground from '../../../assets/result-lost.png';
 
 interface Props {
     state: GameState;
-    // Opens a fresh lobby with a new code
+    //opens a new lobby with a new code
     onPlayAgain: () => void;
 }
 
-// End of the game on mission control: final city health and how the team did.
+//end of the game on mission control: final health and team results
 export default function ResultScreen({ state, onPlayAgain }: Props) {
     const won = state.status === 'won';
     const played = state.missions.filter((m) => m.status !== 'active');
