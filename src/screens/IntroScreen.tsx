@@ -8,6 +8,8 @@ import { scale } from '../lib/scale';
 
 interface Props {
   players: Player[];
+  //called when the intro is done (last slide ran out or skip)
+  //each device plays its own copy
   onFinish: () => void;
 }
 

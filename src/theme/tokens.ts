@@ -1,15 +1,13 @@
-// Shared visual language for Gothem Cité: a night-city backdrop with one
-// "bat-signal" gold accent, and hard-edged comic-panel outlines/shadows
-// instead of soft blurred card shadows.
+//colors and styles: night city, one gold accent, hard comic outlines and shadows
 
 export const colors = {
-  ink: '#0B1220', // night-sky backdrop
-  inkLine: '#05070C', // hard outline stroke, comic ink
-  panel: '#151F35', // panel fill, one step up from ink
-  paper: '#F2E9D8', // comic-page cream, for inputs/light surfaces
-  signal: '#FFC53D', // bat-signal gold, the one hero accent
-  signalDim: '#8A6A1E', // pressed/disabled state of signal
-  alarm: '#E6483C', // danger/error red
+  ink: '#0B1220', //night sky backdrop
+  inkLine: '#05070C', //hard outline
+  panel: '#151F35', //panel fill
+  paper: '#F2E9D8', //cream, for inputs/light surfaces
+  signal: '#FFC53D', //main gold accent
+  signalDim: '#8A6A1E', //pressed/disabled gold
+  alarm: '#E6483C', //danger/error red
   resolved: "#69db7c",
   textOnInk: '#F2E9D8',
   textMuted: '#8C93A6',
@@ -28,14 +26,7 @@ export const radii = {
   md: 8,
 } as const;
 
-export const fonts = {
-    titles: "Bangers_400Regular",
-    bodyBold : 'Nunito_700Bold',
-    bodyExtraBold: 'Nunito_800ExtraBold',
-    body : "Nunito_400Regular"
-} as const;
-
-// Comic-panel style: hard offset shadow instead of a soft blurred one.
+//comic style hard shadow
 export const inkShadow = (offset: number) => ({
   shadowColor: colors.inkLine,
   shadowOffset: { width: offset, height: offset },

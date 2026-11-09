@@ -6,8 +6,6 @@ interface Props {
   body: string;
 }
 
-// Placeholder "slide": a plain rectangle standing in for the real
-// illustration Phase 4 will add, plus the slide's heading/body text.
 export function IntroSlide({ heading, body }: Props) {
   return (
     <View style={styles.container}>

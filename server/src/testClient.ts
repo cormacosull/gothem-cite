@@ -1,12 +1,6 @@
-// Manual smoke test for the server, no Expo app required.
-//
-// Run:
-//   Terminal 1:  npm run dev
-//   Terminal 2:  npm run test-client
-//
-// Simulates a parent creating a session, a child joining, the game starting,
-// and the child reporting a successful mission — logging every message so
-// you can see the whole pairing working end to end.
+//manual test for the server, no expo app needed
+//run: npm run dev in one terminal, npm run test-client in another
+//fakes a parent and child going through a mission and logs every message
 
 import WebSocket from 'ws';
 import type { ClientMessage, ServerMessage } from './protocol';

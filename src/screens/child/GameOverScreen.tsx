@@ -6,7 +6,7 @@ interface Props {
   cityHealth: number;
 }
 
-// End of the whole game, shown on every hero's device at the same time.
+//end of the game, shown on every hero's device
 export function GameOverScreen({ result, cityHealth }: Props) {
   return (
     <View style={styles.container}>

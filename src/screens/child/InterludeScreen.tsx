@@ -5,15 +5,14 @@ import type { Mission } from '../../lib/protocol';
 
 interface Props {
   cityHealth: number;
-  // How much the city moved since this player's last mission started
+  //how much the city moved since this player's last mission
   healthChange: number;
-  // null once the player has played all of their missions
+  //null once the player finished all their missions
   nextMission: Mission | null;
   secondsLeft: number;
 }
 
-// Breather between two missions: how the city is doing, then a countdown
-// to the next game.
+//break between missions: city status then countdown to the next game
 export function InterludeScreen({ cityHealth, healthChange, nextMission, secondsLeft }: Props) {
   const villain = VILLAINS.find((v) => v.id === nextMission?.type);
   const change = Math.round(healthChange);

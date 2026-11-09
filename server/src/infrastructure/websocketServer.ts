@@ -1,14 +1,11 @@
-// Infrastructure layer — the only place in the server that knows about `ws`.
-// Translates raw socket connect/message/close events into calls on the
-// application layer (sessionService), and application results into outgoing
-// ServerMessages. This used to be the bulk of index.ts; index.ts is now just
-// the process entry point that starts this.
+//only place that touches ws
+//turns socket events into sessionService calls and sends back ServerMessages
 
 import { WebSocketServer, WebSocket } from 'ws';
 import type { ClientMessage, ServerMessage } from '../protocol';
 import * as sessions from '../application/sessionService';
 
-// Track which session/role each socket belongs to, so we can clean up on disconnect.
+//which session/role each socket is, for cleanup on disconnect
 const socketInfo = new Map<WebSocket, { code: string; role: 'parent' | 'child'; playerId?: string }>();
 
 function send(ws: WebSocket, message: ServerMessage) {
@@ -85,7 +82,7 @@ export function startWebSocketServer(port: number): WebSocketServer {
       try {
         message = JSON.parse(raw.toString());
       } catch {
-        return; // ignore malformed messages
+        return; //ignore bad messages
       }
       handleMessage(ws, message);
     });

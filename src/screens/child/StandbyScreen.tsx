@@ -2,9 +2,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { colors, spacing, radii, inkShadow, fonts } from '../../theme/tokens';
 
 
-// Placeholder "holding" screen between the intro and an actual mission:
-// nothing to do yet but wait. Stands in for whatever Phase 3's mission
-// assignment eventually drives this screen to show/navigate to.
+//waiting screen between the intro and a mission
 export function StandbyScreen() {
   return (
     <View style={styles.container}>

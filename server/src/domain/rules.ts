@@ -1,8 +1,4 @@
-// Pure game rules — no framework, no I/O, no socket knowledge.
-// Kept separate from application/infrastructure so mission/health logic can
-// be unit-tested on its own, and so it's obvious where "the rules of Gothem
-// Cité" live as the project grows (e.g. mission dependencies will be added
-// here rather than mixed into the session/connection plumbing).
+//game rules, kept separate so they can be unit tested
 
 import type { Mission, MissionType } from '../protocol';
 
@@ -17,8 +13,8 @@ export function missionTypeForIndex(index: number): MissionType {
   return MISSION_TYPES[index % MISSION_TYPES.length];
 }
 
-// Every game moves the city by the same amount
-// The final health is the % of games won
+//every game moves the city by the same amount
+//final health is the % of games won
 export function healthStep(totalMissions: number): number {
   return (100 - STARTING_CITY_HEALTH) / totalMissions;
 }
@@ -28,9 +24,8 @@ export function applyMissionResult(current: number, success: boolean, totalMissi
   return Math.min(100, Math.max(0, current + delta));
 }
 
-// Returns the game's outcome or null while it can still be won. 
-// Lost as soon as WIN_CITY_HEALTH is out of reach even if every remaining game is won
-// Won once every game has been played (health is then above it).
+//returns the outcome, null while it can still be won
+//lost once WIN_CITY_HEALTH is out of reach, won once every game is played
 export function evaluateOutcome(
   missions: Mission[],
   cityHealth: number,
@@ -47,7 +42,7 @@ export function evaluateOutcome(
 export function generateSessionCode(isTaken: (code: string) => boolean): string {
   let code: string;
   do {
-    code = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit, Kahoot-style
+    code = Math.floor(1000 + Math.random() * 9000).toString(); //4 digit code, like kahoot
   } while (isTaken(code));
   return code;
 }

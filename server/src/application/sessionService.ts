@@ -1,10 +1,5 @@
-// Application layer — orchestrates domain rules and in-memory session state
-// for each of the game's use cases (create a session, join a session, start
-// the game, report a mission result, handle disconnects). This is what used
-// to be sessionManager.ts; the health/mission math it relied on inline now
-// lives in domain/rules.ts, and the WebSocket wiring that called it lives in
-// infrastructure/websocketServer.ts. This layer knows about sockets only
-// enough to send messages to them — it never touches `ws` server setup.
+//session state and the game use cases (create, join, start, mission result, disconnects)
+//game math is in domain/rules.ts, ws setup is in infrastructure/websocketServer.ts
 
 import type { WebSocket } from 'ws';
 import type { GameState, Player, Mission, ServerMessage } from '../protocol';
@@ -23,7 +18,7 @@ import {
 interface Session {
   state: GameState;
   parent: WebSocket | null;
-  children: Map<string, WebSocket>; // playerId -> socket
+  children: Map<string, WebSocket>; //playerId -> socket
 }
 
 const sessions = new Map<string, Session>();
@@ -38,7 +33,7 @@ function broadcastState(session: Session) {
   for (const child of session.children.values()) send(child, message);
 }
 
-// Every player plays every mission once
+//every player plays every mission once
 function totalMissions(session: Session): number {
   return session.state.players.length * MISSIONS_PER_PLAYER;
 }
@@ -87,7 +82,7 @@ export function startTutorial(code: string, socket: WebSocket): { error: string 
   if (session.state.players.length === 0) return { error: 'Wait for at least one hero to join.' };
 
   session.state.status = 'tutorial';
-  broadcastState(session); // children see status 'tutorial' and keep waiting
+  broadcastState(session); //children see 'tutorial' and keep waiting
   return { ok: true };
 }
 export function completeTutorial(code: string, socket: WebSocket): { error: string } | { ok: true } {
@@ -109,8 +104,7 @@ function assignMissions(session: Session) {
   for (const player of session.state.players) assignNextMission(session, player);
 }
 
-// Each player goes through every mission once, starting on a different
-// one so the whole team isn't on the same game at the same time
+//everyone plays every mission, different start so the team isn't all on the same game
 function assignNextMission(session: Session, player: Player) {
   const playerIndex = session.state.players.indexOf(player);
   const played = session.state.missions.filter((m) => m.playerId === player.id).length;
@@ -193,17 +187,15 @@ export function reconnectChild(
 
 export function removeParent(code: string, socket: WebSocket) {
   const session = sessions.get(code);
-  // A reconnect may already have replaced this socket by the time its
-  // 'close' event fires (events can arrive out of order) — only clear the
-  // parent if it's still the one that disconnected.
+  //a reconnect can replace this socket before its close event fires
+  //only clear the parent if it's still the same socket
   if (session && session.parent === socket) session.parent = null;
 }
 
 export function removeChild(code: string, playerId: string, socket: WebSocket) {
   const session = sessions.get(code);
   if (!session) return;
-  // Same race as removeParent: don't undo a reconnect that already
-  // replaced this socket for the player.
+  //same race as removeParent, don't undo a reconnect
   if (session.children.get(playerId) !== socket) return;
 
   session.children.delete(playerId);

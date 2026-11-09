@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useGameSocket } from '../lib/useGameSocket';
 import type { Player, Mission } from '../lib/protocol';
 
-// Pause between two missions in seconds
+//pause between missions in seconds
 const INTERLUDE_SECONDS = 5;
 
 function findOwnMission(missions: Mission[], playerId: string | null): Mission | null {
@@ -10,7 +10,7 @@ function findOwnMission(missions: Mission[], playerId: string | null): Mission |
   return missions.find((m) => m.playerId === playerId && m.status === 'active') ?? null;
 }
 
-// The player's active mission on the server, unless it's the one already on screen
+//player's active mission on the server, unless already on screen
 function findNextMission(missions: Mission[], playerId: string | null, currentId: string | null): Mission | null {
   const found = findOwnMission(missions, playerId);
   if (!found || found.id === currentId) return null;
@@ -29,7 +29,7 @@ export type SessionPhase =
   | 'error';
 
 interface Options {
-  // Called once the post-game-start intro sequence finishes
+  //called when the intro finishes
   onGameStart?: () => void;
 }
 
@@ -86,11 +86,11 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
           const next = findNextMission(message.state.missions, playerIdRef.current, mission?.id ?? null);
           if (next) setNextMission(next);
         }
-        // Starting the game should skip the intro on all devices
+        //starting the game skips the intro on all devices
         if (message.state.status === 'playing') {
           setPhase((current) => (current === 'intro' ? 'standby' : current));
         }
-        // Reconnecting after the game already ended
+        //reconnected after the game ended
         if (message.state.status === 'won' || message.state.status === 'lost') {
           setGameResult(message.state.status);
           setPhase('gameOver');
@@ -118,7 +118,7 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
           const next = findNextMission(message.state.missions, playerIdRef.current, mission?.id ?? null);
           if (next) setNextMission(next);
         }
-        // Starting the game should skip the intro on all devices
+        //starting the game skips the intro on all devices
         if (message.state.status === 'playing') {
           setPhase((current) => (current === 'intro' ? 'standby' : current));
         }
@@ -136,7 +136,7 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     }
   }, [isConnected, code, socket]);
 
-  // Brings in the next mission once the player is back on standby
+  //next mission once the player is back on standby
   useEffect(() => {
     if (phase !== 'standby' || mission || !nextMission) return;
     setMission(nextMission);
@@ -144,7 +144,7 @@ export function useSessionViewModel({ onGameStart }: Options = {}) {
     setHealthBeforeMission(cityHealth);
   }, [phase, mission, nextMission, cityHealth]);
 
-  // Interlude countdown
+  //interlude countdown
   useEffect(() => {
     if (phase !== 'interlude' || !nextMission) return;
     if (interludeSecondsLeft <= 0) {

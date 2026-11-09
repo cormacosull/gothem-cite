@@ -12,8 +12,7 @@ export default function RootLayout() {
     [fonts.bodyExtraBold]: Nunito_800ExtraBold,
   });
 
-  // Every screen under app/ can now assume these fonts are ready —
-  // no screen needs its own useFonts call.
+
   if (!fontsLoaded) return null;
 
   return (
