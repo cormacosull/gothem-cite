@@ -49,4 +49,4 @@ projects, so the `ClientMessage` / `ServerMessage` / `GameState` types can't be 
 one shared package today. For the MVP we're accepting **manual sync** instead of setting up an
 npm workspace: whenever you change one `protocol.ts`, copy the same change to the other one.
 Both files carry a comment pointing at this rule. If the protocol keeps growing, revisit this
-as an npm workspace (see `TECHNICAL_SPEC.md`, Phase 1).
+as an npm workspace.
