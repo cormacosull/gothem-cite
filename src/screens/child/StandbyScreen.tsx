@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, radii, inkShadow } from '../../theme/tokens';
+import { colors, spacing, radii, inkShadow, fonts } from '../../theme/tokens';
 
 
 //waiting screen between the intro and a mission
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     ...inkShadow(3),
   },
   heading: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: 26,
     color: colors.signal,
     marginTop: spacing.lg,
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   body: {
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: fonts.body,
     fontSize: 14,
     lineHeight: 20,
     color: colors.textOnInk,

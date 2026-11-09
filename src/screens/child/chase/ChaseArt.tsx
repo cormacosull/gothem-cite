@@ -2,11 +2,6 @@ import { StyleSheet } from 'react-native';
 import Svg, { Rect, G } from 'react-native-svg';
 import { colors } from '../../../theme/tokens';
 
-/* -------------------------------------------------------------------------- */
-/*  Hand-drawn (no external asset) art for the chase mission's road. The      */
-/*  player and traffic cars are image assets; see ChaseScreen.                */
-/* -------------------------------------------------------------------------- */
-
 const BG_VIEWBOX = { width: 240, height: 420 };
 const LANE_COUNT = 3;
 const LANE_WIDTH = BG_VIEWBOX.width / LANE_COUNT;
@@ -16,12 +11,10 @@ const DASH_LENGTH = 20;
 const DASH_GAP = 16;
 const DASH_COUNT = Math.ceil(BG_VIEWBOX.height / (DASH_LENGTH + DASH_GAP));
 
-// Small shopfront/window accents along both sidewalks, suggesting the city
-// without drawing full building facades (this is a straight-down street view).
 const ACCENT_COLORS = [colors.signal, colors.alarm, '#4FD1E8', colors.signal];
 const ACCENT_ROWS = Array.from({ length: Math.ceil(BG_VIEWBOX.height / 48) }, (_, i) => i * 48 + 10);
 
-/** The 3-lane road, sidewalks and skyline accents behind the chase board. */
+// The 3-lane road, sidewalks and skyline accents behind the chase board
 export function ChaseBackground() {
   return (
     <Svg

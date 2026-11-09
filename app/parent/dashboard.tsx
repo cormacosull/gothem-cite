@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
 import { scale } from '../../src/lib/scale';
-import { colors } from '../../src/theme/tokens';
+import { colors, fonts } from '../../src/theme/tokens';
 import { router } from 'expo-router';
 import type { GameState, MissionType } from '../../src/lib/protocol';
 import firePreview from '../../assets/previews/fire.png';
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   healthLabel: {
     color: colors.textOnInk,
     fontSize: scale(11),
-    fontWeight: "bold",
+    fontFamily: fonts.bodyBold,
   },
   healthHeading: {
     flexDirection: "row",
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   healthValue: {
     color: colors.signal,
     fontSize: scale(13),
-    fontWeight: "bold",
+    fontFamily: fonts.bodyBold,
   },
   healthTrack: {
     height: scale(8),
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
   },
   alertHeaderCol: {
     fontSize: scale(9),
-    fontWeight: "bold",
+    fontFamily: fonts.bodyBold,
     color: "rgba(255, 255, 255, 0.85)",
   },
   alertLine: {
@@ -305,11 +305,11 @@ const styles = StyleSheet.create({
   },
   statusResolved: {
     color: colors.resolved,
-    fontWeight: "bold",
+    fontFamily: fonts.bodyBold,
   },
   statusFailed: {
     color: colors.alarm,
-    fontWeight: "bold",
+    fontFamily: fonts.bodyBold,
   },
   emptyMessage: {
     color: colors.textMuted,

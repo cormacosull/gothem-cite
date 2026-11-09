@@ -1,5 +1,5 @@
 import { Pressable, Text, StyleSheet, GestureResponderEvent } from 'react-native';
-import { colors, spacing, radii, inkShadow } from '../theme/tokens';
+import { colors, spacing, radii, inkShadow, fonts } from '../theme/tokens';
 
 interface Props {
   label: string;
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   label: {
-    fontFamily: 'Nunito_800ExtraBold',
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 18,
     color: colors.inkLine,
     letterSpacing: 0.3,

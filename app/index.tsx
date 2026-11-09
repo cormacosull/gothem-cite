@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { PrimaryButton } from '../src/components/PrimaryButton';
-import { colors, spacing } from '../src/theme/tokens';
+import { colors, spacing, fonts } from '../src/theme/tokens';
 
 export default function RoleSelectScreen() {
   return (
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   wordmark: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: 48,
     color: colors.signal,
     letterSpacing: 1,
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 0,
   },
   tagline: {
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fonts.bodyBold,
     fontSize: 15,
     color: colors.textOnInk,
     marginTop: spacing.xs,

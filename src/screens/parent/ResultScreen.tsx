@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { scale } from '../../lib/scale';
-import { colors } from '../../theme/tokens';
+import { colors, fonts } from '../../theme/tokens';
 import type { GameState } from '../../lib/protocol';
 import wonBackground from '../../../assets/result-won.png';
 import lostBackground from '../../../assets/result-lost.png';
@@ -75,14 +75,14 @@ const styles = StyleSheet.create({
     eyebrow: {
         color: colors.signal,
         fontSize: scale(12),
-        fontWeight: '700',
+        fontFamily: fonts.bodyBold,
         letterSpacing: 1,
         marginBottom: scale(12),
     },
     title: {
-        fontFamily: 'Bangers_400Regular',
-        fontSize: scale(40),
         color: colors.resolved,
+        fontSize: scale(40),
+        fontFamily: fonts.bodyBold,
         letterSpacing: 1,
         textAlign: 'center',
         textShadowColor: colors.inkLine,
@@ -117,6 +117,6 @@ const styles = StyleSheet.create({
     primaryButtonText: {
         color: colors.ink,
         fontSize: scale(16),
-        fontWeight: '700',
+        fontFamily: fonts.bodyBold,
     },
 });

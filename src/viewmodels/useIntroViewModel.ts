@@ -42,7 +42,7 @@ function buildSlides(players: Player[]): IntroSlideContent[] {
     {
       key: 'threats',
       heading: 'Your Mission, Should You Accept It',
-      body: "Each of you will take on all three kinds of trouble, one after the other:\n\n🔥 Fire — put it out before it spreads\n🚓 Chase — catch the one who's running\n💣 Bomb — defuse it before time runs out\n\nThe whole team is counting on you.",
+      body: "Each of you will take on all three kinds of trouble, one after the other:\n\n Fire: put it out before it spreads\n Chase: catch the one who's running\n Bomb: defuse it before time runs out\n\nThe whole team is counting on you.",
     },
   ];
 }

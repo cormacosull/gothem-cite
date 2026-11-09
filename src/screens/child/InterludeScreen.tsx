@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, radii, inkShadow } from '../../theme/tokens';
+import { colors, spacing, radii, inkShadow, fonts } from '../../theme/tokens';
 import { VILLAINS } from '../../lib/villains';
 import type { Mission } from '../../lib/protocol';
 
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heading: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: 26,
     color: colors.signal,
     textAlign: 'center',
@@ -62,13 +62,13 @@ const styles = StyleSheet.create({
     ...inkShadow(3),
   },
   healthText: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: 48,
     color: colors.signal,
     letterSpacing: 1,
   },
   change: {
-    fontFamily: 'Nunito_800ExtraBold',
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 16,
     color: colors.textOnInk,
     marginTop: spacing.md,
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     color: colors.alarm,
   },
   body: {
-    fontFamily: 'Nunito_400Regular',
+    fontFamily: fonts.body,
     fontSize: 14,
     lineHeight: 20,
     color: colors.textOnInk,

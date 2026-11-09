@@ -3,7 +3,7 @@ import { Image, Platform, Pressable, StyleSheet, Text, View, type GestureRespond
 import Svg, { Circle, Ellipse, G, Line, Path, Polygon, Rect } from 'react-native-svg';
 import { scale } from 'react-native-size-matters';
 import { useFireMissionViewModel } from '../../../viewmodels/useFireMissionViewModel';
-import { colors, spacing, radii } from '../../../theme/tokens';
+import { colors, spacing, radii, fonts } from '../../../theme/tokens';
 import { ENGINE_ART, ENGINE_LAYOUT, GAME_CONFIG, HOSE_ANCHOR, IMAGE_UNITS, getAimDirection, getFireVisual, convertToImageUnits, type FireLocation, type Point, } from './logic';
 import apartments from '../../../../assets/apartments.webp';
 import fire from '../../../../assets/fire.png';
@@ -591,14 +591,14 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   title: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: 36,
     color: colors.signal,
     letterSpacing: 1,
     textAlign: 'center',
   },
   subtitle: {
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fonts.bodyBold,
     fontSize: 14,
     color: colors.textOnInk,
     marginTop: spacing.xs,
@@ -626,11 +626,10 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xs,
   },
   hudTitles: {
-    fontFamily: 'Nunito_700Bold',
     fontSize: scale(9),
     textAlign: "center",
     color: colors.textOnInk,
-    fontWeight: "bold",
+    fontFamily: fonts.bodyBold,
     fontStyle: "italic",
     textDecorationLine: "underline"
   },
@@ -644,7 +643,7 @@ const styles = StyleSheet.create({
   },
   hudItemText: {
     textAlign: "center",
-    fontWeight: "bold",
+    fontFamily: fonts.bodyBold,
     fontStyle: "italic",
     fontSize: scale(15),
   },
@@ -679,13 +678,13 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   sprayButtonText: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: scale(14),
     letterSpacing: scale(0.75),
     color: colors.textOnInk,
   },
   hint: {
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fonts.bodyBold,
     fontSize: scale(6),
     color: colors.textOnInk,
     opacity: 0.9,
@@ -770,14 +769,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   overlayTitle: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: scale(13),
     letterSpacing: scale(0.75),
     color: colors.signal,
     textAlign: 'center',
   },
   overlayBody: {
-    fontFamily: 'Nunito_700Bold',
+    fontFamily: fonts.bodyBold,
     fontSize: scale(6),
     color: colors.textOnInk,
     textAlign: 'center',
@@ -796,7 +795,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   overlayButtonText: {
-    fontFamily: 'Bangers_400Regular',
+    fontFamily: fonts.titles,
     fontSize: scale(8),
     letterSpacing: scale(0.5),
     color: colors.ink,
