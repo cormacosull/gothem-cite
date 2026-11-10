@@ -1,6 +1,12 @@
 WE GOTTHEM
 
 
+## Requirements
+
+To play, you need:
+- 1 computer with [Node.js](https://nodejs.org) and npm, for the server and the parent ("Mission control").
+- 1 to 3 players, each on a phone or tablet  **or** in their own browser tab on the same computer.
+
 ## Running it
 
 You need two terminal windows: one for the websocket server, one for the Expo app.
@@ -54,12 +60,12 @@ as an npm workspace.
 ## Playing the game
 
 1. On the computer, choose **Mission control** to get a pin code.
-2. On each phone, choose **I'm a hero**, enter the code and a name, then press **Join the fight**.
+2. On each child device, choose **I'm a hero**, enter the code and a name, then press **Join the fight**.
 3. On the parent, press **Start the briefing**, watch or skip the intro, then press **Begin the mission**.
-4. On each phone, press **START** and play each mission using the controls shown on the screen:
+4. On each child device, press **START** and play each mission using the controls shown on the screen:
    - **Fire:** aim by touching the street and hold **SPRAY!** (on the web, aim with the mouse and hold the spacebar).
    - **Puzzler:** type 5-letter words, and press the hint button if needed.
-   - **Chase:** swipe or tilt the phone to change lanes.
+   - **Chase:** swipe or tilt (phone or iPad) to change lanes.
 5. After each result, continue to the short break before the next mission. Follow the team's progress on the parent dashboard.
 6. When the game ends, press **Play again** on the parent to open a new lobby.
 
