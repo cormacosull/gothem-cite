@@ -1,25 +1,26 @@
-export const LANE_COUNT = 3;
 export type Lane = 0 | 1 | 2;
-
-export const SURVIVAL_MS = 20000; //how long the player has to dodge to win
-export const TICK_MS = 50; //game loop
-export const OBSTACLE_TRAVEL_MS = 2000; //time an obstacle takes to reach the player
-export const SPAWN_INTERVAL_MS = 850; //time between obstacle spawns
-export const MAX_LIVES = 2; //hits before losing
-
-//matches ChaseScreen's board geometry (420px board, player 10px off the bottom),
-//the progress where the player's own top edge sits on the obstacle's 0..1 scale
-export const COLLISION_WINDOW_START = 0.9;
-//obstacle length on that same scale, so a hit uses its leading edge, not the trailing one
-export const CAR_LENGTH_FRACTION = 0.15;
+export type ChaseStatus = 'ready' | 'playing' | 'won' | 'lost';
 
 export interface Obstacle {
   id: string;
   lane: Lane;
-  progress: number; // 0 = just spawned x 1 = reached the player
+  progress: number; // 0 = just spawned, 1 = reached the player
 }
 
-export type ChaseStatus = 'ready' | 'playing' | 'won' | 'lost';
+export const LANE_COUNT = 3;
+
+export const SURVIVAL_MS = 20000; //how long you need to survive to win
+export const TICK_MS = 50; //game loop interval
+export const OBSTACLE_TRAVEL_MS = 2000; //time for a car to cross the whole lane
+export const SPAWN_INTERVAL_MS = 850; //gap between new cars
+export const MAX_LIVES = 2; //how many hits before it's over
+
+//these two match ChaseScreen's actual board (420px tall, player sits 10px from
+//the bottom): COLLISION_WINDOW_START is where the player's top edge lands on
+//the 0..1 scale a car travels, CAR_LENGTH_FRACTION is roughly how tall a car
+//is on that same scale, so we're checking its front bumper, not its back one
+export const COLLISION_WINDOW_START = 0.9;
+export const CAR_LENGTH_FRACTION = 0.15;
 
 function randomId(): string {
   return Math.random().toString(36).slice(2, 9);
@@ -35,20 +36,24 @@ export function spawnObstacle(): Obstacle {
 
 export function advanceObstacles(obstacles: Obstacle[], deltaMs: number): Obstacle[] {
   const step = deltaMs / OBSTACLE_TRAVEL_MS;
-  return obstacles
-    .map((o) => ({ ...o, progress: o.progress + step }))
-    .filter((o) => o.progress <= 1.05); // drop once its past the player
+  const next: Obstacle[] = [];
+  for (const car of obstacles) {
+    const progress = car.progress + step;
+    if (progress <= 1.05) next.push({ ...car, progress }); //past 1.05 it's off screen, drop it
+  }
+  return next;
 }
 
-//obstacles touching the player right now, so the caller can turn them into lost lives
+//which cars are currently touching the player's lane (front bumper past the
+//collision line), so the caller can dock a life for each new one
 export function findCollidingObstacleIds(playerLane: Lane, obstacles: Obstacle[]): string[] {
-  return obstacles
-    .filter((o) => {
-      if (o.lane !== playerLane) return false;
-      const leadingEdge = o.progress + CAR_LENGTH_FRACTION;
-      return leadingEdge >= COLLISION_WINDOW_START && o.progress <= 1;
-    })
-    .map((o) => o.id);
+  const hits: string[] = [];
+  for (const car of obstacles) {
+    if (car.lane !== playerLane) continue;
+    const front = car.progress + CAR_LENGTH_FRACTION;
+    if (front >= COLLISION_WINDOW_START && car.progress <= 1) hits.push(car.id);
+  }
+  return hits;
 }
 
 export function getStatus(elapsedMs: number, livesLeft: number): ChaseStatus {
