@@ -9,12 +9,27 @@ const SIDEWALK_WIDTH = 14;
 
 const DASH_LENGTH = 20;
 const DASH_GAP = 16;
-const DASH_COUNT = Math.ceil(BG_VIEWBOX.height / (DASH_LENGTH + DASH_GAP));
 
 const ACCENT_COLORS = [colors.signal, colors.alarm, '#4FD1E8', colors.signal];
-const ACCENT_ROWS = Array.from({ length: Math.ceil(BG_VIEWBOX.height / 48) }, (_, i) => i * 48 + 10);
 
-// The 3-lane road, sidewalks and skyline accents behind the chase board
+//y positions for one lane divider's dashes, reused for both dividers
+function buildDashRows(): number[] {
+  const rows: number[] = [];
+  for (let y = 0; y < BG_VIEWBOX.height; y += DASH_LENGTH + DASH_GAP) rows.push(y);
+  return rows;
+}
+
+//y positions for the shopfront accents running down both sidewalks
+function buildAccentRows(): number[] {
+  const rows: number[] = [];
+  for (let y = 10; y < BG_VIEWBOX.height; y += 48) rows.push(y);
+  return rows;
+}
+
+const DASH_ROWS = buildDashRows();
+const ACCENT_ROWS = buildAccentRows();
+
+//the 3-lane road, sidewalks and skyline accents behind the chase board
 export function ChaseBackground() {
   return (
     <Svg
@@ -54,16 +69,8 @@ export function ChaseBackground() {
       {/* dashed lane dividers, at 1/3 and 2/3 of the road width */}
       {[LANE_WIDTH, LANE_WIDTH * 2].map((x) => (
         <G key={x}>
-          {Array.from({ length: DASH_COUNT }, (_, i) => (
-            <Rect
-              key={i}
-              x={x - 1.5}
-              y={i * (DASH_LENGTH + DASH_GAP)}
-              width={3}
-              height={DASH_LENGTH}
-              fill={colors.textOnInk}
-              opacity={0.75}
-            />
+          {DASH_ROWS.map((y) => (
+            <Rect key={y} x={x - 1.5} y={y} width={3} height={DASH_LENGTH} fill={colors.textOnInk} opacity={0.75} />
           ))}
         </G>
       ))}

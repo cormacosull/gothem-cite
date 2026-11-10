@@ -17,7 +17,7 @@ import {
   type ChaseStatus,
 } from '../screens/child/chase/logic';
 
-// Tilt is iOS/Android only (expo-sensors' Accelerometer has no web)
+//tilt is ios/android only, expo-sensors has no web version
 const TILT_ENABLED = Platform.OS !== 'web';
 const TILT_THRESHOLD = 0.35; 
 const TILT_COOLDOWN_MS = 350; 
@@ -33,11 +33,10 @@ export function useChaseMissionViewModel({ onFinish }: Options = {}) {
   const [lives, setLives] = useState(MAX_LIVES);
   const [started, setStarted] = useState(false);
 
-  // Obstacles already counted as a hit, so one doesn't cost a second life
-  // while it keeps overlapping the player across ticks.
+  //obstacles already counted as a hit don't cost another life while still overlapping
   const hitIdsRef = useRef<Set<string>>(new Set());
 
-  // 'ready' until START is pressed on the popup, like the fire game
+  //ready until start is pressed, same as the fire game
   const status: ChaseStatus = started ? getStatus(elapsedMs, lives) : 'ready';
 
   const onFinishRef = useRef(onFinish);
@@ -53,7 +52,7 @@ export function useChaseMissionViewModel({ onFinish }: Options = {}) {
     }
   }, [status]);
 
-  // Game loop: advance the clock, advance obstacles, spawn new ones
+  //game loop: advance the clock, move obstacles, spawn new ones
   useEffect(() => {
     if (status !== 'playing') return;
     let msSinceSpawn = 0;
@@ -69,7 +68,7 @@ export function useChaseMissionViewModel({ onFinish }: Options = {}) {
     return () => clearInterval(interval);
   }, [status]);
 
-  // Collision check: runs whenever the board actually changes
+  //collision check, runs whenever the board changes
   useEffect(() => {
     if (status !== 'playing') return;
     const collidingIds = findCollidingObstacleIds(playerLane, obstacles);
@@ -79,7 +78,7 @@ export function useChaseMissionViewModel({ onFinish }: Options = {}) {
     setLives((current) => Math.max(0, current - newHits.length));
   }, [obstacles, playerLane, status]);
 
-  /** Starts the chase, or restarts it after a win or a loss. */
+  //starts the chase, or restarts it after a win or a loss
   function start() {
     if (status === 'playing') return;
     finishedRef.current = false;
@@ -101,7 +100,7 @@ export function useChaseMissionViewModel({ onFinish }: Options = {}) {
     setPlayerLane((lane) => clampLane(lane + 1));
   }
 
-  // Tilt controls: lean device left/right to change lanes
+  //tilt controls, lean the phone left or right to change lanes
   useEffect(() => {
     if (!TILT_ENABLED || status !== 'playing') return;
 

@@ -15,12 +15,12 @@ import {
 } from '../screens/child/puzzler/logic';
 
 interface Options {
-  // Called when the game ends (will send mission_result to the server)
+  //called when the game ends, sends mission_result to the server
   onFinish?: (success: boolean) => void;
 }
 
 export function usePuzzlerViewModel({ onFinish }: Options = {}) {
-  // Passing the function (not calling it) so the word is picked only once per game
+  //passing the function, not calling it, so the word is only picked once
   const [answer, setAnswer] = useState(pickRandomAnswer);
   const reportedResultRef = useRef(false);
   const [guesses, setGuesses] = useState<Guess[]>([]);
@@ -30,7 +30,7 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
   const [timeLeftMs, setTimeLeftMs] = useState(DURATION_MS);
   const [hintIndexes, setHintIndexes] = useState<number[]>([]);
 
-  // Derived from guesses and the timer, so they're never out of sync. 'ready' until START is pressed
+  //derived from guesses and the timer so they're never out of sync, ready until start is pressed
   const status: GameStatus = started ? getGameStatus(guesses, timeLeftMs) : 'ready';
   const keyboardColors = getKeyboardColors(guesses);
   const nextHintIndex = findHintIndex(guesses, hintIndexes);
@@ -40,14 +40,14 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
     onFinishRef.current = onFinish;
   }, [onFinish]);
 
-  // Reports the result once, whether the game ended on a guess or on the timer
+  //reports the result once, win or lose from a guess or the timer
   useEffect(() => {
     if ((status !== 'won' && status !== 'lost') || reportedResultRef.current) return;
     reportedResultRef.current = true;
     onFinishRef.current?.(status === 'won');
   }, [status]);
 
-  // Countdown like the fire game's loop; it only runs while the game is being played
+  //countdown like the fire game's loop, only runs while playing
   useEffect(() => {
     if (status !== 'playing') return;
     let last = Date.now();
@@ -60,7 +60,7 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
     return () => clearInterval(timer);
   }, [status]);
 
-  // Starts the game, or restarts it with a new word after a win or a loss
+  //starts the game, or restarts with a new word after a win or a loss
   function start() {
     if (status === 'playing') return;
     if (status !== 'ready') setAnswer(pickRandomAnswer());
@@ -73,21 +73,21 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
     setStarted(true);
   }
 
-  // Adds a letter to the current guess if the game is still playing and the guess isn't full
+  //adds a letter if still playing and the guess isn't full
   function addLetter(letter: string) {
     if (status !== 'playing' || currentGuess.length >= WORD_LENGTH) return;
     setErrorText('');
     setCurrentGuess(currentGuess + letter.toUpperCase());
   }
 
-  // Removes the last letter from the current guess if the game is still playing
+  //removes the last letter if still playing
   function deleteLetter() {
     if (status !== 'playing') return;
     setErrorText('');
     setCurrentGuess(currentGuess.slice(0, -1));
   }
 
-  // Submits the current guess if the game is still playing and the guess is valid
+  //submits the guess if still playing and valid
   function submitGuess() {
     if (status !== 'playing') return;
     if (currentGuess.length < WORD_LENGTH) {
@@ -103,7 +103,7 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
     setCurrentGuess('');
   }
 
-  // Reveals the first letter that hasn't been found yet
+  //reveals the next letter that hasn't been found
   function revealHint() {
     if (status !== 'playing' || hintIndexes.length >= MAX_HINTS || nextHintIndex === null) return;
     setHintIndexes([...hintIndexes, nextHintIndex]);
@@ -117,7 +117,7 @@ export function usePuzzlerViewModel({ onFinish }: Options = {}) {
     errorText,
     keyboardColors,
     timeLeftMs,
-    // Letters given by hints, by position (null where nothing was revealed)
+    //letters given by hints, null where nothing was revealed
     hintLetters: Array.from({ length: WORD_LENGTH }, (_, i) => (hintIndexes.includes(i) ? answer[i] : null)),
     hintsLeft: MAX_HINTS - hintIndexes.length,
     canHint: status === 'playing' && hintIndexes.length < MAX_HINTS && nextHintIndex !== null,

@@ -23,39 +23,38 @@ function normalize(word: string): string {
 
 
 const ANSWERS: string[] = answersData
-  // To compare every word in uppercase
-  .map(normalize)                                   
+  //normalize everything to uppercase for comparison
+  .map(normalize)
   .filter((word) => word.length === WORD_LENGTH);
 
 const VALID_GUESSES = new Set<string>([
-  // all answers are valid guesses
-  ...ANSWERS,                                       
+  //all answers are valid guesses
+  ...ANSWERS,
   ...allowedData.map(normalize),
 ]);
 
-// Returns a random word to guess from the list of possible answers
+//picks a random word from the answer list
 export function pickRandomAnswer(): string {
   const index = Math.floor(Math.random() * ANSWERS.length);
   return ANSWERS[index];
 }
 
-// Returns true if the guess is valid 
+//true if the guess is a valid word
 export function isValidGuess(guess: string): boolean {
   const word = normalize(guess);
   return word.length === WORD_LENGTH && VALID_GUESSES.has(word);
 }
 
-
-// Returns an array of LetterValue indicating whether each letter is correct, present or absent
+//scores each letter as correct, present or absent
 export function scoreGuess(guess: string, answer: string): LetterValue[] {
   const guessLetters = normalize(guess).split('');
   const answerLetters = normalize(answer).split('');
   const result: LetterValue[] = Array(WORD_LENGTH).fill('absent');
 
-  // Answer letters not matched exactly
+  //answer letters not matched exactly
   const leftover: Record<string, number> = {};
 
-  // Right letters in the correct position
+  //right letter, right spot
   for (let i = 0; i < WORD_LENGTH; i++) {
     if (guessLetters[i] === answerLetters[i]) {
       result[i] = 'correct';
@@ -65,7 +64,7 @@ export function scoreGuess(guess: string, answer: string): LetterValue[] {
     }
   }
 
-  // Right letter in the wrong position
+  //right letter, wrong spot
   for (let i = 0; i < WORD_LENGTH; i++) {
     if (result[i] === 'correct') continue;
     const letter = guessLetters[i];
@@ -79,12 +78,12 @@ export function scoreGuess(guess: string, answer: string): LetterValue[] {
 }
 
 
-// Returns true if the guess is correct
+//true if every letter is correct
 export function isAnswer(result: LetterValue[]): boolean {
   return result.every((r) => r === 'correct');
 }
 
-// Returns the current game status based on the guesses made and the time left
+//game status from the guesses made and time left
 export function getGameStatus(guesses: Guess[], timeLeftMs: number): GameStatus {
   const last = guesses[guesses.length - 1];
   if (last && isAnswer(last.result)) return 'won';
@@ -92,7 +91,7 @@ export function getGameStatus(guesses: Guess[], timeLeftMs: number): GameStatus 
   return 'playing';
 }
 
-// Returns a mapping of letters to their highest LetterValue based on the guesses made
+//best known color for each letter typed so far
 const RANK: Record<LetterValue, number> = { absent: 0, present: 1, correct: 2 };
 export function getKeyboardColors(guesses: Guess[]): Record<string, LetterValue> {
   const colors: Record<string, LetterValue> = {};
@@ -107,8 +106,7 @@ export function getKeyboardColors(guesses: Guess[]): Record<string, LetterValue>
   return colors;
 }
 
-// First position (left to right) whose letter hasn't been found yet, by a
-// green tile or an earlier hint. null when every letter is already known
+//next letter position not yet found by a green tile or a hint, null if all are known
 export function findHintIndex(guesses: Guess[], hintIndexes: number[]): number | null {
   for (let i = 0; i < WORD_LENGTH; i++) {
     const found = guesses.some((g) => g.result[i] === 'correct');
@@ -116,6 +114,4 @@ export function findHintIndex(guesses: Guess[], hintIndexes: number[]): number |
   }
   return null;
 }
-
-
 
