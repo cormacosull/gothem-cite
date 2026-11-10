@@ -9,7 +9,7 @@ import chaseObstacleCar2 from '../../../../assets/chase-obstacle-car2.png';
 
 const OBSTACLE_CARS = [chaseObstacleCar1, chaseObstacleCar2];
 
-// Deterministic pick per obstacle id, so a car keeps the same look for its lifetime.
+//deterministic pick per obstacle id so a car keeps the same look
 function obstacleCarImage(id: string) {
   let hash = 0;
   for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) | 0;
@@ -27,9 +27,9 @@ const OVERLAY_COPY = {
 } as const;
 
 interface Props {
-  // Called once the moment the game ends
+  //called once the game ends
   onFinish?: (success: boolean) => void;
-  // Called when the player taps the win/lose screen
+  //called when the player taps the win/lose screen
   onContinue?: () => void;
 }
 
@@ -49,7 +49,7 @@ export function ChaseScreen({ onFinish, onContinue }: Props = {}) {
     moveRight,
   } = useChaseMissionViewModel({ onFinish });
 
-  // PanResponder is created once and reads the latest handlers through refs
+  //panresponder created once, reads the latest handlers through refs
   const moveLeftRef = useRef(moveLeft);
   const moveRightRef = useRef(moveRight);
   useEffect(() => {
